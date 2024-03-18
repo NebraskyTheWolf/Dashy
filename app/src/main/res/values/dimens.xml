@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="margin_16">16dp</dimen>
+    <dimen name="padding_30">30dp</dimen>
+    <dimen name="margin_8">8dp</dimen>
+
+    <dimen name="table_view_cell_height">88dp</dimen>
+    <dimen name="table_view_row_header_width">28dp</dimen>
+    <dimen name="table_view_default_text_size">14sp</dimen>
+</resources>

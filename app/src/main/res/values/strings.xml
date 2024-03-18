@@ -1,0 +1,95 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">PDADashy</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="order">Users</string>
+    <string name="customers">Customers Management</string>
+    <string name="settings">Audit Logs</string>
+    <string name="accounting">Accounting</string>
+    <string name="carriers">Carriers</string>
+    <string name="welcome">Welcome</string>
+    <string name="orders">Orders</string>
+    <string name="customer">Tickets</string>
+    <string name="products">Calendar</string>
+    <string name="reports">Orders</string>
+    <string name="product">Products Management</string>
+    <string name="please_scan_the_data_matrix">Please scan the data-matrix</string>
+    <string name="scan">Scan</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sort_ascending">Sort Ascending</string>
+    <string name="sort_descending">Sort Descending</string>
+    <string name="clear_sorting">Clear</string>
+    <string name="row_show">Show 5. Row</string>
+    <string name="row_hide">Hide 5. Row</string>
+
+    <string name="msg_token_fmt" tools:ignore="ExtraTranslation">Token</string>
+
+    <string name="try_again">Try Again</string>
+    <string name="no_internet_found_ncheck_your_connection_or_try_again">No internet found. \nCheck your connection or try again</string>
+    <string name="whoops">Whoops!</string>
+    <string name="by_vakea">by Vakea</string>
+    <string name="made_with">Made with</string>
+    <string name="dashboard">Info</string>
+    <string name="return_to_main_menu">Return to main menu</string>
+    <string name="order_info">Order Info</string>
+    <string name="payment">Payment</string>
+    <string name="failed">Failed.</string>
+    <string name="loading">Loading...</string>
+    <string name="full_name">Full Name :</string>
+    <string name="payment_request">Payment</string>
+    <string name="fluffici_login">FLUFFICI LOGIN</string>
+    <string name="login">LOGIN</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="stock">Stock</string>
+    <string name="product_list">Product list</string>
+    <string name="scan_user">Scan User</string>
+    <string name="customerss">Customers</string>
+    <string name="order_management">Order management</string>
+    <string name="scan_order">Scan order</string>
+    <string name="voucher_info">Voucher info</string>
+    <string name="cancel_order">Cancel order</string>
+    <string name="refund_order">Refund order</string>
+    <string name="sign_in">Sign In</string>
+    <string name="need_help">Need Help?</string>
+    <string name="remember_me">Remember me</string>
+    <string name="passwords">Password</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="we_missed_you_login_to_get_started">We missed you! Login to get started</string>
+    <string name="logins">LOGIN</string>
+    <string name="john_smith_fluffici_eu">john.smith@fluffici.eu</string>
+    <string name="todo">TODO</string>
+    <string name="otp">OTP</string>
+    <string name="please_look_in_your_mail_box">Please look in your mail box!</string>
+    <string name="_000_000">000-000</string>
+    <string name="continues">Continue</string>
+    <string name="profile">Profile</string>
+    <string name="missingno">Missingno</string>
+    <string name="about">About</string>
+    <string name="bio">Bio</string>
+    <string name="email">Email</string>
+    <string name="personal_information">Personal Information</string>
+
+    <string name="onboarding_slide1_title">Create an account</string>
+    <string name="onboarding_slide1_subtitle">Connect with people around the world</string>
+    <string name="onboarding_slide1_desc">User will be able to give you live, chat and meet
+        with people nearby.</string>
+
+    <string name="onboarding_slide2_title">Login to your account</string>
+    <string name="onboarding_slide2_subtitle">Let\'s build connection with new people</string>
+    <string name="onboarding_slide2_desc">Connect helps you locate the people around you who
+        are closest from your home.</string>
+
+    <string name="onboarding_slide3_title">Login to your account</string>
+    <string name="onboarding_slide3_subtitle">Feel the happiness</string>
+    <string name="onboarding_slide3_desc">User will be able to give you live, chat and meet
+        with people nearby.</string>
+    <string name="role">Role</string>
+    <string name="search_order">Search order</string>
+
+</resources>

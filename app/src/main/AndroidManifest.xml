@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="eu.fluffici.dashy">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name="eu.fluffici.dashy.PDAApplication"
+        android:icon="@drawable/badges_svg"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/badges_svg"
+        android:zygotePreloadName="eu.fluffici.security.AppZygotePreload"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PDADashy"
+        tools:targetApi="q">
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.common.ErrorView"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.auth.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.auth.OTPActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.OrdersActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.accounting.AccountingActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.calendar.CalendarComposeActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <service
+            android:name="eu.fluffici.dashy.services.Notification"
+            android:exported="true"
+            android:permission="android.permission.INTERNET">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="eu.fluffici.security.IsolatedService"
+            android:exported="false"
+            android:useAppZygote="true" />
+    </application>
+
+</manifest>
