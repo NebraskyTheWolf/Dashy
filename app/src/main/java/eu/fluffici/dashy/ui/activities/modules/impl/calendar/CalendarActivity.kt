@@ -2,7 +2,6 @@ package eu.fluffici.dashy.ui.activities.modules.impl.calendar
 
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import eu.fluffici.calendar.pages.AkceCalendar
@@ -26,12 +25,6 @@ class CalendarActivity : Module(
 
         setContent {
             AkceCalendar()
-        }
-
-        if (System.getProperty("X-TOAST-ENABLED") == "true") {
-            Toast.makeText(applicationContext, System.getProperty("X-TOAST-MESSAGE"), Toast.LENGTH_LONG).show()
-            System.setProperty("X-TOAST-ENABLED", null)
-            System.setProperty("X-TOAST-MESSAGE", null)
         }
     }
 

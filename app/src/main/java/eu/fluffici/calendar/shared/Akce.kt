@@ -30,7 +30,7 @@ data class Akce(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-suspend fun generateFlights(): MutableList<Akce> = withContext(Dispatchers.IO) {
+suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/events?format=flight")
@@ -53,19 +53,17 @@ suspend fun generateFlights(): MutableList<Akce> = withContext(Dispatchers.IO) {
                         Info(it.details.eventName, it.details.city),
                         Info("Pending orders", "${it.details.orders}"),
                         R.color.colorPrimary,
-                    ),
+                    )
                 )
             }
         }
     } else {
         Log.d("AkceCalendar", "Unable to fetch data from the remote server.")
-
-        System.setProperty("X-TOAST-MESSAGE", "Cannot load data from calendar service.")
-        System.setProperty("X-TOAST-ENABLED", "true")
     }
-    return@withContext result // Return the resulting list
+
+    return@withContext result
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-val flightDateTimeFormatter: DateTimeFormatter =
+val akceDateTimeFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("EEE'\n'dd MMM'\n'HH:mm")

@@ -1,6 +1,7 @@
 package eu.fluffici.calendar.pages
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,13 +22,13 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
+import androidx.compose.material.LocalContentColor
+import androidx.compose.material.Text
 import androidx.compose.material.darkColors
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -57,8 +58,8 @@ import com.kizitonwose.calendar.core.previousMonth
 import eu.fluffici.calendar.StatusBarColorUpdateEffect
 import eu.fluffici.calendar.rememberFirstCompletelyVisibleMonth
 import eu.fluffici.calendar.shared.Akce
+import eu.fluffici.calendar.shared.akceDateTimeFormatter
 import eu.fluffici.calendar.shared.displayText
-import eu.fluffici.calendar.shared.flightDateTimeFormatter
 import eu.fluffici.calendar.shared.generateFlights
 import eu.fluffici.dashy.R
 import kotlinx.coroutines.launch
@@ -81,7 +82,6 @@ fun getFlights(): Map<LocalDate, List<Akce>> {
 }
 
 private val pageBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_page_bg_color)
-private val divider: Color @Composable get() = colorResource(R.color.colorPrimary)
 private val itemBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_item_view_bg_color)
 private val toolbarColor: Color @Composable get() = colorResource(R.color.colorPrimary)
 private val selectedItemColor: Color @Composable get() = colorResource(R.color.example_5_text_grey)
@@ -90,87 +90,113 @@ private val inActiveTextColor: Color @Composable get() = colorResource(R.color.e
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AkceCalendar() {
-    val flights = getFlights()
+    val isLoading = remember { mutableStateOf(true) }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
+    val akceByDate = remember { mutableStateOf(mapOf<LocalDate, List<Akce>>()) }
 
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusMonths(500) }
     val endMonth = remember { currentMonth.plusMonths(500) }
     var selection by remember { mutableStateOf<CalendarDay?>(null) }
     val daysOfWeek = remember { daysOfWeek() }
-    val flightsInSelectedDate = remember {
-        derivedStateOf {
-            val date = selection?.date
-            if (date == null) emptyList() else flights[date].orEmpty()
+
+    LaunchedEffect(key1 = true) {
+        try {
+            val result = generateFlights()
+            akceByDate.value = result.groupBy { it.time.toLocalDate() }
+        } catch (e: Exception) {
+            errorMessage.value = e.message
+        } finally {
+            isLoading.value = false
         }
     }
-    StatusBarColorUpdateEffect(toolbarColor)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(pageBackgroundColor),
-    ) {
-        val state = rememberCalendarState(
-            startMonth = startMonth,
-            endMonth = endMonth,
-            firstVisibleMonth = currentMonth,
-            firstDayOfWeek = daysOfWeek.first(),
-            outDateStyle = OutDateStyle.EndOfGrid,
-        )
-        val coroutineScope = rememberCoroutineScope()
-        val visibleMonth = rememberFirstCompletelyVisibleMonth(state)
-        LaunchedEffect(visibleMonth) {
-            // Clear selection if we scroll to a new month.
-            selection = null
-        }
 
-        // Draw light content on dark background.
-        CompositionLocalProvider(LocalContentColor provides darkColors().onSurface) {
-            eu.fluffici.calendar.animations.CalendarTitle(
+    if (isLoading.value) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        errorMessage.value?.let { error ->
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("An error occurred: $error")
+            }
+        } ?: run {
+            val akceInSelectedDate = remember(akceByDate.value) {
+                derivedStateOf {
+                    val date = selection?.date
+                    akceByDate.value[date] ?: emptyList()
+                }
+            }
+            StatusBarColorUpdateEffect(toolbarColor)
+            Column(
                 modifier = Modifier
-                    .background(toolbarColor)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                currentMonth = visibleMonth.yearMonth,
-                goToPrevious = {
-                    coroutineScope.launch {
-                        state.animateScrollToMonth(state.firstVisibleMonth.yearMonth.previousMonth)
-                    }
-                },
-                goToNext = {
-                    coroutineScope.launch {
-                        state.animateScrollToMonth(state.firstVisibleMonth.yearMonth.nextMonth)
-                    }
-                },
-            )
-            HorizontalCalendar(
-                modifier = Modifier.wrapContentWidth(),
-                state = state,
-                dayContent = { day ->
-                    CompositionLocalProvider(LocalRippleTheme provides Example3RippleTheme) {
-                        val colors = if (day.position == DayPosition.MonthDate) {
-                            flights[day.date].orEmpty().map { colorResource(it.color) }
-                        } else {
-                            emptyList()
-                        }
-                        Day(
-                            day = day,
-                            isSelected = selection == day,
-                            colors = colors,
-                        ) { clicked ->
-                            selection = clicked
-                        }
-                    }
-                },
-                monthHeader = {
-                    MonthHeader(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        daysOfWeek = daysOfWeek,
+                    .fillMaxSize()
+                    .background(pageBackgroundColor),
+            ) {
+                val state = rememberCalendarState(
+                    startMonth = startMonth,
+                    endMonth = endMonth,
+                    firstVisibleMonth = currentMonth,
+                    firstDayOfWeek = daysOfWeek.first(),
+                    outDateStyle = OutDateStyle.EndOfGrid,
+                )
+                val coroutineScope = rememberCoroutineScope()
+                val visibleMonth = rememberFirstCompletelyVisibleMonth(state)
+                LaunchedEffect(visibleMonth) {
+                    // Clear selection if we scroll to a new month.
+                    selection = null
+                }
+
+                // Draw light content on dark background.
+                CompositionLocalProvider(LocalContentColor provides darkColors().onSurface) {
+                    eu.fluffici.calendar.animations.CalendarTitle(
+                        modifier = Modifier
+                            .background(toolbarColor)
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        currentMonth = visibleMonth.yearMonth,
+                        goToPrevious = {
+                            coroutineScope.launch {
+                                state.animateScrollToMonth(state.firstVisibleMonth.yearMonth.previousMonth)
+                            }
+                        },
+                        goToNext = {
+                            coroutineScope.launch {
+                                state.animateScrollToMonth(state.firstVisibleMonth.yearMonth.nextMonth)
+                            }
+                        },
                     )
-                },
-            )
-            HorizontalDivider(color = pageBackgroundColor)
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(items = flightsInSelectedDate.value) { flight ->
-                    FlightInformation(flight)
+                    HorizontalCalendar(
+                        modifier = Modifier.wrapContentWidth(),
+                        state = state,
+                        dayContent = { day ->
+                            CompositionLocalProvider(LocalRippleTheme provides AkceRippleTheme) {
+                                val colors = if (day.position == DayPosition.MonthDate) {
+                                    akceByDate.value[day.date].orEmpty().map { colorResource(it.color) }
+                                } else {
+                                    emptyList()
+                                }
+                                Day(
+                                    day = day,
+                                    isSelected = selection == day,
+                                    colors = colors,
+                                ) { clicked ->
+                                    selection = clicked
+                                }
+                            }
+                        },
+                        monthHeader = {
+                            MonthHeader(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                daysOfWeek = daysOfWeek,
+                            )
+                        },
+                    )
+                    Divider(color = pageBackgroundColor)
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(items = akceInSelectedDate.value) { flight ->
+                            AkceInformation(flight)
+                        }
+                    }
                 }
             }
         }
@@ -253,7 +279,7 @@ private fun MonthHeader(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun LazyItemScope.FlightInformation(akce: Akce) {
+private fun LazyItemScope.AkceInformation(akce: Akce) {
     Row(
         modifier = Modifier
             .fillParentMaxWidth()
@@ -268,7 +294,7 @@ private fun LazyItemScope.FlightInformation(akce: Akce) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = flightDateTimeFormatter.format(akce.time).uppercase(Locale.ENGLISH),
+                text = akceDateTimeFormatter.format(akce.time).uppercase(Locale.ENGLISH),
                 textAlign = TextAlign.Center,
                 lineHeight = 17.sp,
                 fontSize = 12.sp,
@@ -280,7 +306,7 @@ private fun LazyItemScope.FlightInformation(akce: Akce) {
                 .weight(1f)
                 .fillMaxHeight(),
         ) {
-            AkceInformation(akce.title, isDeparture = true)
+            AkceInformation(akce.title, isTitle = true)
         }
         Box(
             modifier = Modifier
@@ -288,20 +314,23 @@ private fun LazyItemScope.FlightInformation(akce: Akce) {
                 .weight(1f)
                 .fillMaxHeight(),
         ) {
-            AkceInformation(akce.description, isDeparture = false)
+            AkceInformation(akce.description, isTitle = false)
         }
     }
     Divider(color = pageBackgroundColor, thickness = 2.dp)
 }
 
 @Composable
-private fun AkceInformation(info: Akce.Info, isDeparture: Boolean) {
+private fun AkceInformation(info: Akce.Info, isTitle: Boolean) {
+
+    Log.d("AKceManager", "RR AkceInformation triggered ${info.key}/${info.value}")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
     ) {
-        val resource = if (isDeparture) {
+        val resource = if (isTitle) {
             R.drawable.clock_filled_svg
         } else {
             R.drawable.receipt_svg
@@ -341,7 +370,7 @@ private fun AkceInformation(info: Akce.Info, isDeparture: Boolean) {
 }
 
 // The default dark them ripple is too bright so we tone it down.
-private object Example3RippleTheme : RippleTheme {
+private object AkceRippleTheme : RippleTheme {
     @Composable
     override fun defaultColor() = RippleTheme.defaultRippleColor(Color.Gray, lightTheme = false)
 
