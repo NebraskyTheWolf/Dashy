@@ -26,7 +26,7 @@ data class Akce(
     val description: Info,
     @ColorRes val color: Int,
 ) {
-    data class Info(val key: String, val value: String)
+    data class Info(val key: String, val value: String, val status: String)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -47,14 +47,28 @@ suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
 
         events.forEach {
             YearMonth.of(it.time.year, it.time.month).atDay(it.time.day).also { date ->
-                result.add(
-                    Akce(
-                        date.atTime(it.time.hours, it.time.minutes),
-                        Info(it.details.eventName, it.details.city),
-                        Info("Pending orders", "${it.details.orders}"),
-                        R.color.colorPrimary,
-                    )
-                )
+                when (it.details.status) {
+                    "INCOMING", "STARTED" -> {
+                        result.add(
+                            Akce(
+                                date.atTime(it.time.hours, it.time.minutes),
+                                Info(it.details.eventName, it.details.city, it.details.status),
+                                Info("Pending orders", "${it.details.orders}", it.details.status),
+                                R.color.colorPrimary,
+                            )
+                        )
+                    }
+                    else -> {
+                        result.add(
+                            Akce(
+                                date.atTime(it.time.hours, it.time.minutes),
+                                Info(it.details.eventName, it.details.status, it.details.status),
+                                Info("Pending orders", "${it.details.orders}", it.details.status),
+                                R.color.colorPrimary,
+                            )
+                        )
+                    }
+                }
             }
         }
     } else {

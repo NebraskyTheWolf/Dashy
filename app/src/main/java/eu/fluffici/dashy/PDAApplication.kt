@@ -1,6 +1,15 @@
 package eu.fluffici.dashy
 
+import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import android.view.WindowManager
+import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
 import com.scottyab.rootbeer.RootBeer
 import eu.fluffici.dashy.events.auth.Unauthorized
@@ -51,7 +60,36 @@ open class PDAApplication : MultiDexApplication() {
             System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel("dashy", "dashy",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+
+            // Check whether notification permission is enabled.
+            if (manager?.getNotificationChannel("dashy")?.importance == NotificationManager.IMPORTANCE_NONE) {
+                askForNotificationPermission()
+            }
+        }
+
         this.mBus.register(this)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun askForNotificationPermission() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Permissions Required")
+            .setMessage("You have forcefully denied some of the required permissions. Please open settings, go to permissions and allow them.")
+            .setPositiveButton("Settings") { _: DialogInterface, _: Int ->
+                val intent = Intent()
+                intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                val uri = Uri.fromParts("package", packageName, null)
+                intent.data = uri
+                startActivity(intent)
+            }.setCancelable(false).create()
+        dialog.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+        dialog.show()
     }
 
     override fun onLowMemory() {

@@ -22,5 +22,6 @@ data class Time(
 data class Details(
     val eventName: String,
     val city: String,
+    val status: String,
     val orders: Int
 )

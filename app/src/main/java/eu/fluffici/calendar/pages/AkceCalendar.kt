@@ -1,7 +1,6 @@
 package eu.fluffici.calendar.pages
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -309,16 +308,19 @@ private fun LazyItemScope.AkceInformation(akce: Akce) {
 
 @Composable
 private fun AkceInformation(info: Akce.Info, isTitle: Boolean) {
-
-    Log.d("AKceManager", "RR AkceInformation triggered ${info.key}/${info.value}")
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
     ) {
         val resource = if (isTitle) {
-            R.drawable.clock_filled_svg
+            when (info.status) {
+                "CANCELLED" -> R.drawable.circle_x_svg
+                "FINISHED", "ENDED" -> R.drawable.checks_svg
+                "STARTED" -> R.drawable.activity_svg
+                "INCOMING" -> R.drawable.clock_filled_svg
+                else -> R.drawable.question_mark_svg
+            }
         } else {
             R.drawable.receipt_svg
         }
