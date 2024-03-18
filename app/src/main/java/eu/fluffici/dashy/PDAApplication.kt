@@ -47,7 +47,9 @@ open class PDAApplication : MultiDexApplication() {
             return // Stuck the app loading
         }
 
-        System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
+        if (Storage.isAuthentified(applicationContext)) {
+            System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
+        }
 
         this.mBus.register(this)
     }

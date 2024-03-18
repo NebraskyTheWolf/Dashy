@@ -68,19 +68,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun getFlights(): Map<LocalDate, List<Akce>> {
-    val flights = remember { mutableStateOf(emptyMap<LocalDate, List<Akce>>()) }
-
-    LaunchedEffect(Unit) {
-        val result = generateFlights()
-        flights.value = result.groupBy { it.time.toLocalDate() }
-    }
-
-    return flights.value
-}
-
 private val pageBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_page_bg_color)
 private val itemBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_item_view_bg_color)
 private val toolbarColor: Color @Composable get() = colorResource(R.color.colorPrimary)

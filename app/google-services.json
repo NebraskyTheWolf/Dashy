@@ -7,9 +7,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123559210180:android:d39e32fb48b20c33012d91",
+        "mobilesdk_app_id": "1:123559210180:android:b42ea4b04f216351012d91",
         "android_client_info": {
           "package_name": "eu.fluffici.dashy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ7UgvOWAqtKDZ0BF2LLdrIXiglFs5494"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123559210180:android:d39e32fb48b20c33012d91",
+        "android_client_info": {
+          "package_name": "eu.fluffici.pda"
         }
       },
       "oauth_client": [],
