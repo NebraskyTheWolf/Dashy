@@ -2,20 +2,15 @@ package eu.fluffici.dashy.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
 import androidx.activity.compose.setContent
-import androidx.cardview.widget.CardView
-import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
-import eu.fluffici.dashy.ui.activities.modules.impl.accounting.AccountingActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.OrdersActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
-import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -50,9 +45,6 @@ class MainActivity : PDAAppCompatActivity() {
             }
             "orders" -> {
                 newIntent(Intent(applicationContext, OrdersActivity::class.java))
-            }
-            "accounting" -> {
-                newIntent(Intent(applicationContext, AccountingActivity::class.java))
             }
             "profile" -> {
                 newIntent(Intent(applicationContext, ProfileActivity::class.java))

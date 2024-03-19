@@ -14,6 +14,7 @@ import eu.fluffici.data.database.entity.Audit;
 import eu.fluffici.data.database.entity.User;
 import eu.fluffici.data.model.impl.UserServiceResponse;
 import eu.fluffici.data.model.impl.AuditServiceResponse;
+import eu.fluffici.data.network.model.AuditS;
 import eu.fluffici.data.network.model.Data;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -90,7 +91,7 @@ public class NetworkUtils {
         Log.d(LOG_TAG, "Converting the response.");
 
         try {
-            for (eu.fluffici.data.network.model.Audit data : auditServiceResponse.data) {
+            for (AuditS data : auditServiceResponse.data) {
                 Audit user = new Audit();
                 user.id = data.id;
                 user.name = data.name;

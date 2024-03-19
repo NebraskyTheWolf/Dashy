@@ -163,6 +163,6 @@ dependencies {
 
     implementation("com.github.alorma.compose-settings:ui-tiles:2.1.0")
     implementation("com.github.alorma.compose-settings:ui-tiles-extended:2.1.0")
-
+    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.kizitonwose.calendar:compose:2.5.0")
 }

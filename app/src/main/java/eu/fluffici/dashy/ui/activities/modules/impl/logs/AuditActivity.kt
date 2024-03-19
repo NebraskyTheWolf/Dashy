@@ -1,8 +1,11 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.logs
 
+import android.os.Build
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.PaginateCurrentPageEvent
 import eu.fluffici.dashy.events.module.PaginateNextPageEvent
@@ -21,38 +24,13 @@ class AuditActivity : Module(
     R.drawable.clipboard_data_svg,
     R.string.settings
 ) {
-
-    private val mBus: EventBus = EventBus.getDefault()
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
-        setContentView(R.layout.users_activity)
 
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction().add(R.id.activity_container, AuditTableFragment(), AuditTableFragment::class.java.getSimpleName()).commit()
+        setContent {
+            AuditLogList()
         }
-
-        val next = findViewById<ImageButton>(R.id.next_button)
-        next.setOnClickListener {
-            this.mBus.post(PaginateNextPageEvent())
-        }
-        val prev = findViewById<ImageButton>(R.id.previous_button)
-        prev.setOnClickListener {
-            this.mBus.post(PaginatePrevPageEvent())
-        }
-    }
-
-    @Subscribe
-    fun currentPage(event: PaginateCurrentPageEvent) {
-        runOnUiThread {
-            Toast.makeText(applicationContext, "Current page: ${event.pageId}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        this.destroy()
-        this.mBus.unregister(this)
     }
 }

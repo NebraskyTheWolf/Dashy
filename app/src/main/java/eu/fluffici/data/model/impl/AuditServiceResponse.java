@@ -7,8 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import eu.fluffici.data.network.model.Audit;
-import eu.fluffici.data.network.model.Data;
+import eu.fluffici.data.network.model.AuditS;
 
 public class AuditServiceResponse {
 
@@ -46,7 +45,7 @@ public class AuditServiceResponse {
 
     @SerializedName("data")
     @Expose
-    public List<Audit> data = null;
+    public List<AuditS> data = null;
 
     @NonNull
     @Override

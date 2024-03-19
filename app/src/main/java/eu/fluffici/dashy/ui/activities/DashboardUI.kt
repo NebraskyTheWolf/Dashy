@@ -42,7 +42,7 @@ import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.utils.Storage
 import org.greenrobot.eventbus.EventBus
 
-private val appFontFamily = FontFamily(
+val appFontFamily = FontFamily(
     fonts = listOf(
         Font(
             resId = R.font.googlesans_bold,
@@ -158,8 +158,9 @@ fun DashboardTitle(text: String, icon: Int, isOnBeginning: Boolean = false, onCl
 }
 
 private fun getPadding(size: Int): Int {
-    return when (size) {
-        6 -> 2
-        else -> 3
+    return when {
+        size % 2 == 0 -> 2
+        size % 3 == 0 -> 3
+        else -> 2
     }
 }

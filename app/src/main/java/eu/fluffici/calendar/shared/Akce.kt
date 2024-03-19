@@ -8,6 +8,10 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
+import eu.fluffici.data.network.model.AuditModel
+import eu.fluffici.data.network.model.RoleModel
+import eu.fluffici.data.network.model.UserModel
+import eu.fluffici.data.network.model.hasRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -28,6 +32,25 @@ data class Akce(
 ) {
     data class Info(val key: String, val value: String, val status: String)
 }
+
+data class Audit(
+    val id: Int,
+    val name: String,
+    val type: String,
+    val slug: String,
+    val entry: AuditLogEntry
+) {
+    data class AuditLogEntry(val id: Int, val user: String, val action: String, val timestamp: String, val iconResourceId: Int)
+}
+
+data class User(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val avatar: Int,
+    val avatarId: String?,
+    val iconBadges: List<Int>
+)
 
 @RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
@@ -76,6 +99,145 @@ suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
     }
 
     return@withContext result
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun generateAudit(): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
+    val result = mutableListOf<Audit.AuditLogEntry>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/audit")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        val events: List<AuditModel> = Json.decodeFromString(element.asJsonObject.get("data").asJsonArray.toString())
+
+        events.forEach {
+            result.add(
+                Audit.AuditLogEntry(
+                    it.id,
+                    it.name,
+                    it.type,
+                    it.created_at,
+                    R.drawable.baseline_density_large_svg
+                )
+            )
+        }
+
+    } else {
+        Log.d("AuditLog", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext result
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun generateUsers(): List<User> = withContext(Dispatchers.IO) {
+    val result = mutableListOf<User>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/users")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        val events: List<UserModel> = Json.decodeFromString(element.asJsonObject.get("data").asJsonArray.toString())
+
+        events.forEach {
+            result.add(
+                User(
+                    it.id,
+                    it.name,
+                    it.email,
+                    it.avatar,
+                    it.avatar_id,
+                    determinesBadges(it)
+                )
+            )
+        }
+
+    } else {
+        Log.d("UsersManager", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext result
+}
+
+fun determinesBadges(user: UserModel): List<Int> {
+    val result = mutableListOf<Int>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/users/roles?id=${user.id}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        val usero: RoleModel = Json.decodeFromString(element.asJsonObject.get("data").toString())
+
+        if (usero.terminated) {
+            result.add(R.drawable.alert_hexagon_svg)
+        } else {
+            if (usero.roles.isEmpty()) {
+                result.add(R.drawable.question_mark_svg)
+            } else {
+                if (hasRole(usero.roles, "admin")) {
+                    result.add(R.drawable.shield_check_filled_svg)
+                }
+
+                if (hasRole(usero.roles, "dev")) {
+                    result.add(R.drawable.code_svg)
+                }
+
+                if (hasRole(usero.roles, "accountant")) {
+                    result.add(R.drawable.calculator_filled_svg)
+                }
+
+                if (hasRole(usero.roles, "members")) {
+                    result.add(R.drawable.antenna_bars_1_svg)
+                }
+
+                if (hasRole(usero.roles, "mod")) {
+                    result.add(R.drawable.hammer_svg)
+                }
+
+                if (hasRole(usero.roles, "comm")) {
+                    result.add(R.drawable.message_chatbot_svg)
+                }
+
+                if (hasRole(usero.roles, "shop_manager")) {
+                    result.add(R.drawable.shopping_bag_edit_svg)
+                }
+            }
+        }
+    } else {
+        if (user.deleted_at != null) {
+            result.add(R.drawable.lock_check_svg)
+        } else {
+            if (user.email_verified_at != null) {
+                result.add(R.drawable.at_svg)
+            } else {
+                result.add(R.drawable.at_off_svg)
+            }
+            if (user.is_fcm) {
+                result.add(R.drawable.brand_android_svg)
+            }
+        }
+    }
+
+    return result
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
