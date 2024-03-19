@@ -160,5 +160,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
+
+    implementation("com.github.alorma.compose-settings:ui-tiles:2.1.0")
+    implementation("com.github.alorma.compose-settings:ui-tiles-extended:2.1.0")
+
     implementation("com.kizitonwose.calendar:compose:2.5.0")
 }

@@ -1,12 +1,10 @@
 package eu.fluffici.dashy.ui.activities.modules
 
 import android.content.Intent
-import android.os.Bundle
-import android.os.Looper
-import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
+import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
@@ -22,25 +20,35 @@ import org.greenrobot.eventbus.ThreadMode
 abstract class Module(
     private val name: String,
     private val permission: String,
-    private val isRestricted: Boolean = false
-) : AppCompatActivity() {
+    private val isRestricted: Boolean = false,
+    private val icon: Int = R.drawable.face_id_error_svg,
+    private val string: Int = R.string._000_000,
+    ) : AppCompatActivity() {
 
-    private val tempBus: EventBus = EventBus.getDefault()
+    protected val eventBus: EventBus = EventBus.getDefault()
     private var mClient = OkHttpClient()
     protected var isAccessible: Boolean = false
 
      protected fun performCheck() {
-         this.tempBus.register(this)
-         this.tempBus.postSticky(PermissionCheckEvent(this.getPermission()))
+         this.eventBus.register(this)
+         this.eventBus.postSticky(PermissionCheckEvent(this.getPermission()))
      }
 
     fun getName(): String {
         return this.name
     }
 
+    fun getDrawable(): Int {
+        return this.icon
+    }
+
+    fun getText(): Int {
+        return this.string
+    }
+
     protected fun destroy() {
         System.gc()
-        this.tempBus.unregister(this)
+        this.eventBus.unregister(this)
         newIntent(this.getParentUI())
     }
 

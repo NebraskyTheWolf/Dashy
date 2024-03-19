@@ -3,6 +3,7 @@ package eu.fluffici.dashy.ui.activities
 import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.cardview.widget.CardView
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
@@ -23,59 +24,13 @@ import org.greenrobot.eventbus.ThreadMode
 class MainActivity : PDAAppCompatActivity() {
     private val mBus = EventBus.getDefault()
 
-    override fun onStart() {
-        super.onStart()
-        this.mBus.register(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-
-        this.mBus.unregister(this)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-
-        val welcome = findViewById<TextView>(R.id.welcome);
-        welcome.setText("Welcome ${Storage.getUser(this.applicationContext).username}")
-        welcome.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.user_circle_svg, 0);
-
-        welcome.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("profile"))
+        setContent {
+            DashboardUI(context = applicationContext, eventBus = this.mBus)
         }
 
-        val users = findViewById<CardView>(R.id.users)
-        users.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("users"))
-        }
-
-        val tickets = findViewById<CardView>(R.id.tickets)
-        tickets.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("tickets"))
-        }
-
-        val calendar = findViewById<CardView>(R.id.calendar)
-        calendar.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("calendar"))
-        }
-
-        val auditlog = findViewById<CardView>(R.id.auditlog)
-        auditlog.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("auditlog"))
-        }
-
-        val reports = findViewById<CardView>(R.id.reports)
-        reports.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("reports"))
-        }
-
-        val accounting = findViewById<CardView>(R.id.accounting)
-        accounting.setOnClickListener {
-            this.mBus.postSticky(CardClickEvent("accounting"))
-        }
+        this.mBus.register(this)
     }
 
     @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
@@ -84,7 +39,7 @@ class MainActivity : PDAAppCompatActivity() {
             "users" -> {
               newIntent(Intent(applicationContext, UsersActivity::class.java))
             }
-            "tickets" -> {
+            "support" -> {
                 newIntent(Intent(applicationContext, SupportActivity::class.java))
             }
             "calendar" -> {
@@ -93,7 +48,7 @@ class MainActivity : PDAAppCompatActivity() {
             "auditlog" -> {
                 newIntent(Intent(applicationContext, AuditActivity::class.java))
             }
-            "reports" -> {
+            "orders" -> {
                 newIntent(Intent(applicationContext, OrdersActivity::class.java))
             }
             "accounting" -> {
@@ -101,6 +56,9 @@ class MainActivity : PDAAppCompatActivity() {
             }
             "profile" -> {
                 newIntent(Intent(applicationContext, ProfileActivity::class.java))
+            }
+            "parent" -> {
+                newIntent(this.intent)
             }
         }
 

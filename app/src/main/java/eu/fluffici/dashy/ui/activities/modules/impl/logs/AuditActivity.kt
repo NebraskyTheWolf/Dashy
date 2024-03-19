@@ -17,7 +17,9 @@ import org.greenrobot.eventbus.Subscribe
 class AuditActivity : Module(
     "auditlog",
     "platform.audit.read",
-    false
+    false,
+    R.drawable.clipboard_data_svg,
+    R.string.settings
 ) {
 
     private val mBus: EventBus = EventBus.getDefault()

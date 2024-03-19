@@ -14,6 +14,7 @@ import androidx.multidex.MultiDexApplication
 import com.scottyab.rootbeer.RootBeer
 import eu.fluffici.dashy.events.auth.Unauthorized
 import eu.fluffici.dashy.ui.activities.common.ErrorView
+import eu.fluffici.dashy.ui.activities.modules.ModuleManager
 import eu.fluffici.dashy.utils.RootCheck
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
@@ -74,6 +75,14 @@ open class PDAApplication : MultiDexApplication() {
         }
 
         this.mBus.register(this)
+    }
+
+    companion object {
+        private val moduleManager: ModuleManager = ModuleManager()
+
+        fun getModuleManager(): ModuleManager {
+            return moduleManager
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

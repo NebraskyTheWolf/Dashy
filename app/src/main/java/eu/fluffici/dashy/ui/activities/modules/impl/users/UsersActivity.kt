@@ -9,7 +9,10 @@ import eu.fluffici.dashy.ui.core.fragments.TableFragment
 
 class UsersActivity : Module(
     "users",
-    "platform.systems.users"
+    "platform.systems.users",
+    false,
+    R.drawable.users_group_svg,
+    R.string.order
 ) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
