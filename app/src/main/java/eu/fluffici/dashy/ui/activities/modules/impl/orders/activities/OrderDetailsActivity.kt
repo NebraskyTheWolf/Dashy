@@ -72,7 +72,7 @@ class OrderDetailsActivity : Module(
                         val intent = Intent(this, OrderPayment::class.java).apply {
                             putExtra("ORDER", order)
                         }
-                        this.newIntent(intent)
+                        this.startActivity(intent)
                     },
                     onCancelClick = {
                         this.mBus.post(OrderCancellationEvent(order))
