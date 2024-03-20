@@ -29,6 +29,7 @@ import eu.fluffici.calendar.shared.User
 import eu.fluffici.calendar.shared.generateUsers
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.ui.activities.DashboardTitle
+import eu.fluffici.dashy.ui.activities.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 
@@ -116,7 +117,8 @@ fun UserItem(user: User) {
                     style = MaterialTheme.typography.h6,
                     color = MaterialTheme.colors.onSurface,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    fontFamily = appFontFamily
                 )
                 Text(
                     text = user.email,

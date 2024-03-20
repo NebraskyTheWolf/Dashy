@@ -37,6 +37,7 @@ import eu.fluffici.dashy.entities.hasDisputed
 import eu.fluffici.dashy.entities.hasPaid
 import eu.fluffici.dashy.entities.hasRefund
 import eu.fluffici.dashy.ui.activities.DashboardTitle
+import eu.fluffici.dashy.ui.activities.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -104,19 +105,19 @@ fun OrderDetailsLayout(
                                 selected = selectedTabIndex == 0,
                                 onClick = { selectedTabIndex = 0 }
                             ) {
-                                Text(text = "Order Details")
+                                Text(text = "Order Details", fontFamily = appFontFamily)
                             }
                             Tab(
                                 selected = selectedTabIndex == 1,
                                 onClick = { selectedTabIndex = 1 }
                             ) {
-                                Text(text = "Transactions")
+                                Text(text = "Transactions", fontFamily = appFontFamily)
                             }
                             Tab(
                                 selected = selectedTabIndex == 2,
                                 onClick = { selectedTabIndex = 2 }
                             ) {
-                                Text(text = "Products")
+                                Text(text = "Products", fontFamily = appFontFamily)
                             }
                         }
 
@@ -188,7 +189,9 @@ fun ActionButton(
                                 Text(
                                     text = "Refund",
                                     color = Color.Black,
-                                    fontSize = 14.sp
+                                    fontSize = 14.sp,
+                                    fontFamily = appFontFamily
+
                                 )
                             }
                         }
@@ -230,7 +233,8 @@ fun ActionButton(
                             Text(
                                 text = "Payment",
                                 color = Color.Black,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                fontFamily = appFontFamily
                             )
                         }
                     }
@@ -254,7 +258,8 @@ fun ActionButton(
                             Text(
                                 text = "Cancel Order",
                                 color = Color.Black,
-                                fontSize = 11.sp
+                                fontSize = 11.sp,
+                                fontFamily = appFontFamily
                             )
                         }
                     }
@@ -303,18 +308,21 @@ fun DisputeAlertCard() {
                     Text(
                         text = "Dispute Alert",
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = Color.Black,
+                        fontFamily = appFontFamily
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "One or more payment(s) has been disputed by the third party (customer).",
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    fontFamily = appFontFamily
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "For more information, please look inside the dashboard.",
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    fontFamily = appFontFamily
                 )
             }
         }

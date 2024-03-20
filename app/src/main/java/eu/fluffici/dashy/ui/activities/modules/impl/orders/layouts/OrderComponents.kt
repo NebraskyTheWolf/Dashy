@@ -36,6 +36,7 @@ import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
 import eu.fluffici.dashy.entities.Transaction
+import eu.fluffici.dashy.ui.activities.appFontFamily
 
 @Composable
 fun OrderDetails(context: Context, order: Order) {
@@ -52,7 +53,8 @@ fun OrderDetails(context: Context, order: Order) {
                 text = "Order status: ${order.status}",
                 style = MaterialTheme.typography.h6,
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                fontFamily = appFontFamily
             )
             Column(
                 modifier = Modifier
@@ -62,22 +64,31 @@ fun OrderDetails(context: Context, order: Order) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Customer Information", fontWeight = FontWeight.Bold)
+                    Text(text = "Customer Information", fontWeight = FontWeight.Bold,
+                        fontFamily = appFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Name: ${order.first_name} ${order.last_name}")
-                    Text(text = "Email: ${order.email}")
+                    Text(text = "Name: ${order.first_name} ${order.last_name}",
+                        fontFamily = appFontFamily)
+                    Text(text = "Email: ${order.email}",
+                        fontFamily = appFontFamily)
                     ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = "${order.phone_number}")
                 }
 
                 Spacer(modifier = Modifier.width(4.dp))
 
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Customer Address", fontWeight = FontWeight.Bold)
+                    Text(text = "Customer Address", fontWeight = FontWeight.Bold,
+                        fontFamily = appFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Address: ${order.first_address}")
-                    Text(text = "Complementary address: ${order.second_address}")
-                    Text(text = "Zip code: ${order.postal_code}")
-                    Text(text = "Country: ${order.country}")
+                    Text(text = "Address: ${order.first_address}",
+                        fontFamily = appFontFamily)
+                    Text(text = "Complementary address: ${order.second_address}",
+                        fontFamily = appFontFamily)
+                    Text(text = "Zip code: ${order.postal_code}",
+                        fontFamily = appFontFamily)
+                    Text(text = "Country: ${order.country}",
+                        fontFamily = appFontFamily
+                    )
                 }
             }
         }
@@ -122,7 +133,8 @@ fun TransactionsList(transactions: List<Transaction>) {
                 Text(
                     text = "Awaiting transactions...",
                     color = Color.White,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    fontFamily = appFontFamily
                 )
             }
         }
@@ -140,7 +152,8 @@ fun TransactionsList(transactions: List<Transaction>) {
                     text = "Transactions",
                     style = MaterialTheme.typography.h6,
                     color = Color.Black,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontFamily = appFontFamily
                 )
                 LazyColumn {
                     items(transactions) { transaction ->
@@ -165,13 +178,17 @@ fun TransactionCard(transaction: Transaction) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text(text = "Transaction ID: ${transaction.transaction_id}", fontWeight = FontWeight.Bold)
+                Text(text = "Transaction ID: ${transaction.transaction_id}", fontWeight = FontWeight.Bold,
+                    fontFamily = appFontFamily)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Status: ${transaction.status}")
+                Text(text = "Status: ${transaction.status}",
+                    fontFamily = appFontFamily)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Amount: ${transaction.price} Kč")
+                Text(text = "Amount: ${transaction.price} Kč",
+                    fontFamily = appFontFamily)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Method of Payment: ${transaction.provider}")
+                Text(text = "Method of Payment: ${transaction.provider}",
+                    fontFamily = appFontFamily)
             }
         }
     }
@@ -194,7 +211,8 @@ fun ProductsList(products: List<Product>) {
                 Text(
                     text = "This order has no products.",
                     color = Color.White,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    fontFamily = appFontFamily
                 )
             }
         }
@@ -212,7 +230,8 @@ fun ProductsList(products: List<Product>) {
                     text = "Products",
                     style = MaterialTheme.typography.h6,
                     color = Color.Black,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontFamily = appFontFamily
                 )
                 LazyColumn {
                     items(products) { product ->

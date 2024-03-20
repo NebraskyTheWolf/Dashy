@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.PostOrderPaymentEvent
+import eu.fluffici.dashy.ui.activities.appFontFamily
 import eu.fluffici.dashy.ui.activities.components.Dialog
 import org.greenrobot.eventbus.EventBus
 
@@ -32,7 +33,8 @@ fun PaymentMethodSelection(
     ) {
         Text(
             text = "Select the payment method.",
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp),
+            fontFamily = appFontFamily
         )
 
         PaymentMethodOption(
@@ -113,7 +115,8 @@ fun PaymentMethodOption(
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Text(text = text)
+            Text(text = text,
+                fontFamily = appFontFamily)
         }
     }
 }

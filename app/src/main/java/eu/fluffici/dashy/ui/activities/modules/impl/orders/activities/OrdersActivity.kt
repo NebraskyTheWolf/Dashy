@@ -11,6 +11,7 @@ import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderUI
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -52,10 +53,15 @@ class OrdersActivity : Module(
     fun onCardClick(event: CardClickEvent) {
         when (event.viewId) {
             "scan_order" -> {
-                val intent = Intent(this, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", fetchOrder(Base64.getEncoder().encodeToString("deeae454-ec6d-4b6a-a7fb-30e2f75ba0b4".toByteArray())).second)
+                val intent = Intent(this, ScannerActivity::class.java).apply {
+                    putExtra("isOrder", true)
                 }
-
+                this.startActivity(intent)
+            }
+            "voucher_info" -> {
+                val intent = Intent(this, ScannerActivity::class.java).apply {
+                    putExtra("isVoucher", true)
+                }
                 this.startActivity(intent)
             }
         }

@@ -36,7 +36,6 @@ fun OrderUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
 @Composable
 fun OrdersGrid(eventBus: EventBus) {
     val orders = listOf(
-        DashboardUICard("search_order", icon = R.drawable.search_svg, text = R.string.search_order),
         DashboardUICard("scan_order", icon = R.drawable.qrcode_svg, text = R.string.scan_order),
         DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info)
     )

@@ -6,8 +6,29 @@ import android.os.Bundle
 import android.os.Parcelable
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
@@ -15,9 +36,12 @@ import eu.fluffici.dashy.entities.Transaction
 import eu.fluffici.dashy.events.module.OrderCancellationEvent
 import eu.fluffici.dashy.events.module.OrderPaymentEvent
 import eu.fluffici.dashy.events.module.OrderRefundEvent
+import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.MainActivity
+import eu.fluffici.dashy.ui.activities.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderDetailsLayout
+import eu.fluffici.dashy.ui.activities.modules.impl.users.UserItem
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -60,6 +84,38 @@ class OrderDetailsActivity : Module(
                         this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
                     }
                 )
+            }
+        } else {
+            setContent {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .padding(5.dp)) {
+
+                    Column {
+                        DashboardTitle(text = "Go back", icon = R.drawable.square_arrow_left_svg, true) {}
+
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Center) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.alert_triangle_filled_svg),
+                                    contentDescription = "Payment",
+                                    tint = Color.Red
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "This order does not exists in our records.",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontFamily = appFontFamily
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
