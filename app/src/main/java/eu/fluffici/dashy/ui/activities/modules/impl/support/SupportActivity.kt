@@ -26,6 +26,5 @@ class SupportActivity : Module(
     override fun onDestroy() {
         super.onDestroy()
         this.destroy()
-        this.mBus.unregister(this)
     }
 }

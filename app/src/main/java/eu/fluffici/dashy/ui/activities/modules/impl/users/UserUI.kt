@@ -34,7 +34,7 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UsersList() {
+fun UsersList(onParentClick: () -> Unit = {}) {
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val users = remember { mutableStateOf(listOf<User>()) }
@@ -68,7 +68,7 @@ fun UsersList() {
 
                 Column {
                     DashboardTitle(text = "Users", icon = R.drawable.square_arrow_left_svg, true) {
-
+                        onParentClick()
                     }
 
                     LazyColumn(

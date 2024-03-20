@@ -31,8 +31,6 @@ public class PDAAppCompatActivity extends AppCompatActivity {
                     | FLAG_ACTIVITY_CLEAR_TASK
             );
             startActivity(i);
-
-            return;
         }
     }
 }

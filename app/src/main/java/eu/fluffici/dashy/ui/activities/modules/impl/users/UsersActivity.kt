@@ -1,13 +1,16 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.users
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.core.fragments.TableFragment
+import eu.fluffici.dashy.utils.newIntent
 
 
 class UsersActivity : Module(
@@ -24,7 +27,9 @@ class UsersActivity : Module(
         this.performCheck()
 
         setContent {
-            UsersList()
+            UsersList(onParentClick = {
+                this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
+            })
         }
     }
 

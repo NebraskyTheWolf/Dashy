@@ -25,14 +25,11 @@ abstract class Module(
     private val string: Int = R.string._000_000,
     ) : AppCompatActivity() {
 
-    protected val eventBus: EventBus = EventBus.getDefault()
-    private var mClient = OkHttpClient()
-    protected var isAccessible: Boolean = false
+    private val eventBus: EventBus = EventBus.getDefault()
 
-     protected fun performCheck() {
-         this.eventBus.register(this)
-         this.eventBus.postSticky(PermissionCheckEvent(this.getPermission()))
-     }
+    protected fun performCheck() {
+        this.eventBus.postSticky(PermissionCheckEvent(this.getPermission()))
+    }
 
     fun getName(): String {
         return this.name
@@ -48,59 +45,14 @@ abstract class Module(
 
     protected fun destroy() {
         System.gc()
-        this.eventBus.unregister(this)
         newIntent(this.getParentUI())
     }
 
-    private fun getParentUI(): Intent {
+    protected fun getParentUI(): Intent {
         return Intent(this.baseContext, MainActivity::class.java)
     }
 
     private fun getPermission(): String {
         return this.permission
-    }
-
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    fun onPermissiveCheck(event: PermissionCheckEvent) {
-        val request = Request.Builder()
-            .url("https://api.fluffici.eu/api/user/@me/permission-check")
-            .addHeader("Authorization", "Bearer ${Storage.getAccessToken(applicationContext)}")
-            .post(event.toJSON())
-            .build()
-        val response = this.mClient.newCall(request).execute()
-        val body = Gson().fromJson(response.body?.string(), PermissionEntity::class.java)
-        if (response.isSuccessful) {
-            if (body.error !== null) {
-                if (body.error === "ACCOUNT_TERMINATED") {
-                    val i = Intent(this@Module, ErrorView::class.java)
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    i.putExtra("title", "Uh-Oh")
-                    i.putExtra("message", "Your account has been terminated.")
-                    return newIntent(i)
-                }
-            }
-
-
-
-            this.isAccessible = body.isGranted
-            if (!body.isGranted) {
-                runOnUiThread {
-                    Toast.makeText(applicationContext, "Permission denied.", Toast.LENGTH_LONG).show()
-                }
-                newIntent(this.getParentUI())
-            } else {
-                if (this.isRestricted) {
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "W.I.P", Toast.LENGTH_LONG).show()
-                    }
-                    newIntent(this.getParentUI())
-                }
-            }
-        } else {
-            runOnUiThread {
-                Toast.makeText(applicationContext, "Unable to check permissions.", Toast.LENGTH_LONG).show()
-            }
-            newIntent(this.getParentUI())
-        }
     }
 }

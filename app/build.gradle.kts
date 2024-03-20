@@ -5,6 +5,7 @@ plugins {
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.plugin.serialization")
 
+
 }
 
 android {

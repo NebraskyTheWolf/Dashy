@@ -5,7 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity;
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity;
-import eu.fluffici.dashy.ui.activities.modules.impl.orders.OrdersActivity;
+import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity;
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity;
 
 public class ModuleManager {

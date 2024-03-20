@@ -33,7 +33,7 @@ import eu.fluffici.dashy.ui.activities.appFontFamily
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AuditLogList() {
+fun AuditLogList(onParentClick: () -> Unit = {}) {
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val auditLogList = remember { mutableStateOf(listOf<Audit.AuditLogEntry>()) }
@@ -67,7 +67,7 @@ fun AuditLogList() {
 
                 Column {
                     DashboardTitle(text = "Audit logs", icon = R.drawable.square_arrow_left_svg, true) {
-
+                        onParentClick()
                     }
 
                     LazyColumn {

@@ -1,6 +1,5 @@
-package eu.fluffici.dashy.ui.activities.modules.impl.orders
+package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -18,7 +17,7 @@ import eu.fluffici.dashy.ui.activities.DashboardUICard
 import org.greenrobot.eventbus.EventBus
 
 @Composable
-fun OrderUI(eventBus: EventBus) {
+fun OrderUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -26,7 +25,7 @@ fun OrderUI(eventBus: EventBus) {
             .padding(20.dp)
     ) {
         DashboardTitle(text = "Order Management", icon = R.drawable.square_arrow_left_svg, true) {
-            eventBus.post(CardClickEvent("parent"))
+            onParentClick()
         }
 
         Spacer(modifier = Modifier.height(20.dp).background(color = Color.White))

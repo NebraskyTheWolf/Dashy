@@ -1,5 +1,6 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.logs
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.ImageButton
@@ -10,9 +11,11 @@ import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.PaginateCurrentPageEvent
 import eu.fluffici.dashy.events.module.PaginateNextPageEvent
 import eu.fluffici.dashy.events.module.PaginatePrevPageEvent
+import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.core.fragments.AuditTableFragment
 import eu.fluffici.dashy.ui.core.fragments.TableFragment
+import eu.fluffici.dashy.utils.newIntent
 import okhttp3.OkHttpClient
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -30,7 +33,14 @@ class AuditActivity : Module(
         this.performCheck()
 
         setContent {
-            AuditLogList()
+            AuditLogList(onParentClick = {
+                this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
+            })
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        this.destroy()
     }
 }

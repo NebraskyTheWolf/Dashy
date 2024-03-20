@@ -95,7 +95,7 @@
         </activity>
 
         <activity
-            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.OrdersActivity"
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
             <intent-filter>
@@ -104,7 +104,16 @@
         </activity>
 
         <activity
-            android:name="eu.fluffici.dashy.ui.activities.modules.impl.accounting.AccountingActivity"
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderDetailsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderPayment"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
             <intent-filter>
