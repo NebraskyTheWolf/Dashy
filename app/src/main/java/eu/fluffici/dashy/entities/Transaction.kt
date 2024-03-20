@@ -9,3 +9,33 @@ data class Transaction(
     val provider: String?,
     val price: Int?,
 )
+
+fun hasRefund(rx: List<Transaction>): Boolean {
+    rx.forEach {
+        if (it.status == "REFUNDED") {
+            return true
+        }
+    }
+
+    return false
+}
+
+fun hasPaid(rx: List<Transaction>): Boolean {
+    rx.forEach {
+        if (it.status == "PAID") {
+            return true
+        }
+    }
+
+    return false
+}
+
+fun hasDisputed(rx: List<Transaction>): Boolean {
+    rx.forEach {
+        if (it.status == "DISPUTED") {
+            return true
+        }
+    }
+
+    return false
+}

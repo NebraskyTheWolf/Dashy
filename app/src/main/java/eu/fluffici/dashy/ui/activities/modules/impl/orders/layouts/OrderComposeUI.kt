@@ -38,8 +38,6 @@ fun OrdersGrid(eventBus: EventBus) {
     val orders = listOf(
         DashboardUICard("search_order", icon = R.drawable.search_svg, text = R.string.search_order),
         DashboardUICard("scan_order", icon = R.drawable.qrcode_svg, text = R.string.scan_order),
-        DashboardUICard("cancel_order", icon = R.drawable.receipt_off_svg, text = R.string.cancel_order),
-        DashboardUICard("refund_order", icon = R.drawable.receipt_refund_svg, text = R.string.refund_order),
         DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info)
     )
 

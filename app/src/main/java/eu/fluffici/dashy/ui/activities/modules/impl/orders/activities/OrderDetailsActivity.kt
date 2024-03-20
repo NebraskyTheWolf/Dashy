@@ -14,6 +14,7 @@ import eu.fluffici.dashy.entities.Product
 import eu.fluffici.dashy.entities.Transaction
 import eu.fluffici.dashy.events.module.OrderCancellationEvent
 import eu.fluffici.dashy.events.module.OrderPaymentEvent
+import eu.fluffici.dashy.events.module.OrderRefundEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderDetailsLayout
@@ -51,10 +52,14 @@ class OrderDetailsActivity : Module(
                     },
                     onCancelClick = {
                         this.mBus.post(OrderCancellationEvent(order))
+                    },
+                    onRefundClick = {
+                        this.mBus.post(OrderRefundEvent(order))
+                    },
+                    onParentClick = {
+                        this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
                     }
-                ) {
-                    this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
-                }
+                )
             }
         }
 
@@ -70,6 +75,11 @@ class OrderDetailsActivity : Module(
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onOrderCancellation(event: OrderCancellationEvent) {
+
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    fun onOrderRefund(event: OrderRefundEvent) {
 
     }
 }

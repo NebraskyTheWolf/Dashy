@@ -65,11 +65,7 @@ fun OrderTest(
 
                 when (selectedTabIndex) {
                     0 -> {
-                        ActionButton(
-                            isPaid = false,
-                            onPaymentClick,
-                            onCancelClick
-                        )
+
                     }
                     1 -> {
 

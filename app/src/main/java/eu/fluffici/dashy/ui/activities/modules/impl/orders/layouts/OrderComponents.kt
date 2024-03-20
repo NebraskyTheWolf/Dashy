@@ -113,7 +113,9 @@ fun TransactionsList(transactions: List<Transaction>) {
         ) {
             Row(horizontalArrangement = Arrangement.Center) {
                 CircularProgressIndicator(
-                    modifier = Modifier.width(25.dp).height(80.dp),
+                    modifier = Modifier
+                        .width(25.dp)
+                        .height(80.dp),
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.width(4.dp))
