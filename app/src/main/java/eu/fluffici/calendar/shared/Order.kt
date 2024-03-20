@@ -8,6 +8,8 @@ import com.google.gson.JsonObject
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
 import eu.fluffici.dashy.entities.Transaction
+import eu.fluffici.dashy.entities.Voucher
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.isBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -19,13 +21,19 @@ import java.util.Base64
 @RequiresApi(Build.VERSION_CODES.O)
 fun fetchOrder(orderId: String): Pair<String?, Order?>  {
     val client = OkHttpClient()
-    val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order?orderId=${String(Base64.getDecoder().decode(orderId))}")
-        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
-        .get()
-        .build()
 
-    val response = client.newCall(request).execute()
+    var request = Request.Builder()
+    request = if (isBase64(orderId)) {
+        request.url("https://api.fluffici.eu/api/order?orderId=${String(Base64.getDecoder().decode(orderId))}")
+            .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+            .get()
+    } else {
+        request.url("https://api.fluffici.eu/api/order?orderId=${orderId}")
+            .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+            .get()
+    }
+
+    val response = client.newCall(request.build()).execute()
     if (response.isSuccessful) {
         val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
 
@@ -41,6 +49,101 @@ fun fetchOrder(orderId: String): Pair<String?, Order?>  {
     }
 
     return Pair(null, null)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun fetchVoucher(encodedData: String?): Voucher? = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/order/voucher/info?encodedData=${encodedData}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+
+    val response = client.newCall(request.build()).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (data.has("error")) {
+            return@withContext null
+        }
+
+        return@withContext Json.decodeFromString<Voucher>(data.get("data").asJsonObject.toString())
+    }
+
+    return@withContext null
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun makeRefund(orderId: String?): Pair<String?, String?> {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/order/payment/refund?orderId=${orderId}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (data.has("error")) {
+            return Pair(data.get("message").asString, null)
+        }
+
+        return Pair(null, data.get("message").asString)
+    }
+
+    return Pair(null, null)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun makeCancellation(orderId: String?): Pair<String?, String?> {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/order/cancel?orderId=${orderId}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (data.has("error")) {
+            return Pair(data.get("message").asString, null)
+        }
+
+        return Pair(null, data.get("message").asString)
+    }
+
+    return Pair(null, null)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: String): Pair<String?, String?> = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=${paymentType}&encodedData=${encoded}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (data.has("error")) {
+            return@withContext Pair(data.get("message").asString, null)
+        }
+
+        return@withContext Pair(null, data.get("message").asString)
+    } else {
+        Log.d("OrderManager", "Unable to fetch products from the remote server.")
+    }
+
+    return@withContext Pair(null, null)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

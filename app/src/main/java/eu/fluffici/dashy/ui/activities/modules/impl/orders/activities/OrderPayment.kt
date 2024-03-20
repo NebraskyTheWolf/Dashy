@@ -1,5 +1,6 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.activities
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -10,6 +11,7 @@ import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.PostOrderPaymentEvent
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.PaymentMethodSelection
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -53,14 +55,19 @@ class OrderPayment : Module(
     fun onOrderPaymentConfirm(event: PostOrderPaymentEvent) {
         when (event.type) {
             "CASH" -> {
-                runOnUiThread {
-                    Toast.makeText(applicationContext, "Cash selected for ${event.order.first_name}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, OrderDetailsActivity::class.java).apply {
+                    putExtra("ORDER", event.order)
+                    putExtra("paymentType", "CASH")
                 }
+
+                this.startActivity(intent)
             }
             "VOUCHER" -> {
-                runOnUiThread {
-                    Toast.makeText(applicationContext, "Voucher selected for ${event.order.first_name}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, ScannerActivity::class.java).apply {
+                    putExtra("ORDER", event.order)
+                    putExtra("isVoucher", true)
                 }
+                this.startActivity(intent)
             }
             else -> {
                 runOnUiThread {

@@ -1,7 +1,9 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.scanner
 
 import android.content.Intent
+import android.media.CamcorderProfile
 import android.util.Log
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -31,12 +33,16 @@ fun CameraScreen(analyzerType: AnalyzerType, eventBus: EventBus, intent: Intent)
             val preview = Preview.Builder().build()
             val selector = CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-
                 .build()
 
             preview.setSurfaceProvider(previewView.surfaceProvider)
+            val camProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
 
-            val imageAnalysis = ImageAnalysis.Builder().build()
+            val imageAnalysis = ImageAnalysis
+                .Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setTargetResolution(Size(camProfile.videoFrameHeight, camProfile.videoFrameWidth))
+                .build()
             imageAnalysis.setAnalyzer(
                 ContextCompat.getMainExecutor(context),
                 if (analyzerType == AnalyzerType.BARCODE) {

@@ -15,7 +15,8 @@ fun Dialog(
     confirmText: String = "Confirm",
     cancelText: String = "Cancel",
     onConfirm: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    hasDismiss: Boolean = true
 ) {
     AlertDialog(
         onDismissRequest = onCancel,
@@ -37,11 +38,13 @@ fun Dialog(
             }
         },
         dismissButton = {
-            Button(
-                onClick = onCancel
-            ) {
-                Text(text = cancelText)
-            }
+           if (hasDismiss) {
+               Button(
+                   onClick = onCancel
+               ) {
+                   Text(text = cancelText)
+               }
+           }
         }
     )
 }

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -29,6 +30,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.fluffici.calendar.shared.makeCancellation
+import eu.fluffici.calendar.shared.makeRefund
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
@@ -65,25 +68,37 @@ class OrderDetailsActivity : Module(
 
         if (order !== null) {
             setContent {
-                OrderDetailsLayout(
-                    order = order,
-                    context = this.applicationContext,
-                    onPaymentClick = {
-                        val intent = Intent(this, OrderPayment::class.java).apply {
-                            putExtra("ORDER", order)
-                        }
-                        this.startActivity(intent)
-                    },
-                    onCancelClick = {
-                        this.mBus.post(OrderCancellationEvent(order))
-                    },
-                    onRefundClick = {
-                        this.mBus.post(OrderRefundEvent(order))
-                    },
-                    onParentClick = {
-                        this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
-                    }
-                )
+                (if (this.intent.hasExtra("refundMessage")) { this.intent.getStringExtra("refundMessage") } else {
+                    "Unable to determine request state."
+                })?.let {
+                    OrderDetailsLayout(
+                        order = order,
+                        context = this.applicationContext,
+                        onPaymentClick = {
+                            val intent = Intent(this, OrderPayment::class.java).apply {
+                                putExtra("ORDER", order)
+                            }
+                            this.startActivity(intent)
+                        },
+                        onCancelClick = {
+                            this.mBus.post(OrderCancellationEvent(order))
+                        },
+                        onRefundClick = {
+                            this.mBus.post(OrderRefundEvent(order))
+                        },
+                        onParentClick = {
+                            this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
+                        },
+                        paymentFailed = this.intent.hasExtra("paymentFailed"),
+
+                        refundFailed = this.intent.hasExtra("refundFailed"),
+                        refundSuccess = this.intent.hasExtra("refundSuccess"),
+                        refundMessage = it,
+
+                        cancelFailed = this.intent.hasExtra("cancelFailed"),
+                        cancelSuccess = this.intent.hasExtra("cancelSuccess"),
+                    )
+                }
             }
         } else {
             setContent {
@@ -129,13 +144,56 @@ class OrderDetailsActivity : Module(
         this.mBus.unregister(this)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onOrderCancellation(event: OrderCancellationEvent) {
-
+        val result = makeCancellation(orderId = event.order.order_id)
+        if (result.first != null) {
+            val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                putExtra("ORDER", event.order)
+                putExtra("cancelFailed", true)
+                putExtra("refundMessage", result.first)
+            }
+            this.startActivity(intent)
+        } else {
+            val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                putExtra("ORDER", event.order)
+                putExtra("cancelSuccess", true)
+                putExtra("refundMessage", result.second)
+            }
+            this.startActivity(intent)
+        }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onOrderRefund(event: OrderRefundEvent) {
+        val result = makeRefund(orderId = event.order.order_id)
 
+        if (result.first == null && result.second == null) {
+            val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                putExtra("ORDER", event.order)
+                putExtra("refundFailed", true)
+                putExtra("refundMessage", "Unable to contact Fluffici servers.")
+            }
+            this.startActivity(intent)
+        } else {
+            if (result.first != null) {
+                val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                    putExtra("ORDER", event.order)
+                    putExtra("refundFailed", true)
+                    putExtra("refundMessage", result.first)
+                }
+                this.startActivity(intent)
+            }
+            if (result.second != null) {
+                val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                    putExtra("ORDER", event.order)
+                    putExtra("refundSuccess", true)
+                    putExtra("refundMessage", result.second)
+                }
+                this.startActivity(intent)
+            }
+        }
     }
 }

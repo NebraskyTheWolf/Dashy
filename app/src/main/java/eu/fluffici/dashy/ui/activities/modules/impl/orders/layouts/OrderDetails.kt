@@ -49,6 +49,12 @@ fun OrderDetailsLayout(
     onCancelClick: () -> Unit = {},
     onParentClick: () -> Unit = {},
     onRefundClick: () -> Unit = {},
+    paymentFailed: Boolean = false,
+    refundFailed: Boolean = false,
+    refundSuccess: Boolean = false,
+    cancelFailed: Boolean = false,
+    cancelSuccess: Boolean = false,
+    refundMessage: String = ""
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
@@ -128,7 +134,45 @@ fun OrderDetailsLayout(
                                 OrderDetails(context = context, order = order)
 
                                 if (hasDisputed(transactions.value)) {
-                                    DisputeAlertCard()
+                                    DisputeAlertCard(
+                                        title = "Dispute Alert",
+                                        description = "One or more payment(s) has been disputed by the third party (customer)."
+                                    )
+                                }
+
+                                if (paymentFailed) {
+                                    DisputeAlertCard(
+                                        title = "Last payment failed.",
+                                        description = "One or more payment(s) has failed."
+                                    )
+                                }
+
+                                if (refundFailed) {
+                                    DisputeAlertCard(
+                                        title = "Refund failed.",
+                                        description = refundMessage
+                                    )
+                                }
+
+                                if (refundSuccess) {
+                                    DisputeAlertCard(
+                                        title = "Successfully refunded.",
+                                        description = refundMessage
+                                    )
+                                }
+
+                                if (cancelFailed) {
+                                    DisputeAlertCard(
+                                        title = "Cancellation failed.",
+                                        description = refundMessage
+                                    )
+                                }
+
+                                if (cancelSuccess) {
+                                    DisputeAlertCard(
+                                        title = "Successfully cancelled.",
+                                        description = refundMessage
+                                    )
                                 }
 
                                 ActionButton(
@@ -270,7 +314,10 @@ fun ActionButton(
 }
 
 @Composable
-fun DisputeAlertCard() {
+fun DisputeAlertCard(
+    title: String,
+    description: String
+) {
     val borderPaint = remember {
         Paint().apply {
             style = PaintingStyle.Stroke
@@ -306,7 +353,7 @@ fun DisputeAlertCard() {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Dispute Alert",
+                        text = title,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         fontFamily = appFontFamily
@@ -314,7 +361,7 @@ fun DisputeAlertCard() {
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "One or more payment(s) has been disputed by the third party (customer).",
+                    text = description,
                     color = Color.DarkGray,
                     fontFamily = appFontFamily
                 )

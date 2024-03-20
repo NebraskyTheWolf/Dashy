@@ -125,6 +125,24 @@
         </activity>
 
         <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderPostPaymentActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.VoucherInfoActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name="eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">

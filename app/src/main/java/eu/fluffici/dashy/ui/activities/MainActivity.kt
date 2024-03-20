@@ -7,8 +7,6 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
-import eu.fluffici.calendar.shared.fetchOrder
-import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
@@ -16,16 +14,12 @@ import eu.fluffici.dashy.ui.activities.common.ErrorView
 import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
-import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderDetailsActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.greenrobot.eventbus.EventBus

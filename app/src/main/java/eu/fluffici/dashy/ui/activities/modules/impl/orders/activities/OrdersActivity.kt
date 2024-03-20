@@ -60,7 +60,7 @@ class OrdersActivity : Module(
             }
             "voucher_info" -> {
                 val intent = Intent(this, ScannerActivity::class.java).apply {
-                    putExtra("isVoucher", true)
+                    putExtra("isVoucherInfo", true)
                 }
                 this.startActivity(intent)
             }
