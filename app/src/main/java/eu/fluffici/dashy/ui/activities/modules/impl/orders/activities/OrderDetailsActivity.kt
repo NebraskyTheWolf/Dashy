@@ -87,7 +87,7 @@ class OrderDetailsActivity : Module(
                             this.mBus.post(OrderRefundEvent(order))
                         },
                         onParentClick = {
-                            this.startActivity(Intent(this.applicationContext, MainActivity::class.java))
+                            this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                         },
                         paymentFailed = this.intent.hasExtra("paymentFailed"),
 

@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.PostOrderPaymentEvent
+import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.PaymentMethodSelection
 import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
@@ -36,7 +37,7 @@ class OrderPayment : Module(
         if (order != null) {
             setContent {
                 PaymentMethodSelection(order = order, eventBus = this.mBus, onCancelClick = {
-                    this.newIntent(this.getParentUI())
+                    this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                 })
             }
         }

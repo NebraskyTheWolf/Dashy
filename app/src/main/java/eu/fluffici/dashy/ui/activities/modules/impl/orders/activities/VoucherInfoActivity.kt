@@ -1,11 +1,14 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.activities
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.VoucherInformationScreen
+import eu.fluffici.dashy.utils.newIntent
 
 class VoucherInfoActivity : Module(
     "voucher_info",
@@ -20,7 +23,7 @@ class VoucherInfoActivity : Module(
             VoucherInformationScreen(
                 encodedData = intent.getStringExtra("encodedData"),
                 onParentClick = {
-                    this.startActivity(this.getParentUI())
+                    this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                 },
                 unrecognised = {
                     this.startActivity(this.getParentUI().apply {

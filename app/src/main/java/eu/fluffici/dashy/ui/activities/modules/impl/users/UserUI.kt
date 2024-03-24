@@ -35,7 +35,10 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UsersList(onParentClick: () -> Unit = {}) {
+fun UsersList(
+    onParentClick: () -> Unit = {},
+    onUserClick: (user: User) -> Unit = {}
+) {
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val users = remember { mutableStateOf(listOf<User>()) }
@@ -77,7 +80,7 @@ fun UsersList(onParentClick: () -> Unit = {}) {
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(users.value) { user ->
-                            UserItem(user = user)
+                            UserItem(user = user, onUserCardClick = onUserClick)
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
@@ -88,10 +91,15 @@ fun UsersList(onParentClick: () -> Unit = {}) {
 }
 
 @Composable
-fun UserItem(user: User) {
+fun UserItem(
+    user: User,
+    onUserCardClick: (user: User) -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable {
-            //TODO: User profile display
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+            onUserCardClick(user)
         },
         shape = RoundedCornerShape(8.dp),
         backgroundColor = MaterialTheme.colors.surface,
@@ -113,7 +121,7 @@ fun UserItem(user: User) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = user.name,
+                    text = user.name!!,
                     style = MaterialTheme.typography.h6,
                     color = MaterialTheme.colors.onSurface,
                     fontWeight = FontWeight.Bold,
@@ -121,13 +129,13 @@ fun UserItem(user: User) {
                     fontFamily = appFontFamily
                 )
                 Text(
-                    text = user.email,
+                    text = user.email!!,
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                 )
             }
 
-            user.iconBadges.forEach { icon ->
+            user.iconBadges?.forEach { icon ->
                 Icon(
                     painter = painterResource(id = icon),
                     contentDescription = null,

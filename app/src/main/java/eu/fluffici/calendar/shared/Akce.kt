@@ -1,6 +1,8 @@
 package eu.fluffici.calendar.shared
 
 import android.os.Build
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.RequiresApi
@@ -8,10 +10,12 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
+import eu.fluffici.dashy.entities.Order
 import eu.fluffici.data.network.model.AuditModel
 import eu.fluffici.data.network.model.RoleModel
 import eu.fluffici.data.network.model.UserModel
 import eu.fluffici.data.network.model.hasRole
+import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -43,14 +47,46 @@ data class Audit(
     data class AuditLogEntry(val id: Int, val user: String, val action: String, val timestamp: String, val iconResourceId: Int)
 }
 
+@Parcelize
 data class User(
     val id: Int,
-    val name: String,
-    val email: String,
+    val name: String?,
+    val email: String?,
     val avatar: Int,
     val avatarId: String?,
-    val iconBadges: List<Int>
-)
+    var iconBadges: List<Int>?
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readInt(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readInt(),
+        parcel.readString(),
+        listOf()
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(this.id)
+        parcel.writeString(this.name)
+        parcel.writeString(this.email)
+        parcel.writeInt(this.avatar)
+        parcel.writeString(this.avatarId)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<User> {
+        override fun createFromParcel(parcel: Parcel): User {
+            return User(parcel)
+        }
+
+        override fun newArray(size: Int): Array<User?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {

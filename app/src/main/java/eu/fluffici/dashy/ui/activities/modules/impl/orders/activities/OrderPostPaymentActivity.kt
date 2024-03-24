@@ -55,7 +55,7 @@ class OrderPostPaymentActivity : Module(
                             order = order,
                             status = "FAILED"
                         ))
-                    }
+                    },
                 )
             }
         }

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import com.google.android.gms.common.util.ArrayUtils
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
@@ -27,14 +28,17 @@ class UsersActivity : Module(
         this.performCheck()
 
         setContent {
-            UsersList(onParentClick = {
-                this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
-            })
+            UsersList(
+                onParentClick = {
+                    this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
+                },
+                onUserClick = {
+                    this.newIntent(Intent(this.applicationContext, UserProfileActivity::class.java).apply {
+                        putExtra("user", it)
+                        putExtra("userBadges", it.iconBadges?.toIntArray())
+                    })
+                }
+            )
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        this.destroy()
     }
 }
