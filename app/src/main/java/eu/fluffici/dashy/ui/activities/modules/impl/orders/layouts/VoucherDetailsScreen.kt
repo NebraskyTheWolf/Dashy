@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import eu.fluffici.calendar.shared.fetchVoucher
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.entities.Error
 import eu.fluffici.dashy.entities.Voucher
 import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
@@ -28,14 +29,14 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 @Composable
 fun VoucherInformationScreen(
     encodedData: String?,
-    unrecognised: () -> Unit = {},
+    unrecognised: (error: Error) -> Unit = {},
     onParentClick: () -> Unit = {}
 ) {
 
 
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
-    val voucher = remember { mutableStateOf<Voucher?>(null) }
+    val voucher = remember { mutableStateOf<Pair<Error?, Voucher?>>(Pair(null, null)) }
 
     LaunchedEffect(key1 = true) {
         try {
@@ -43,10 +44,10 @@ fun VoucherInformationScreen(
         } catch (e: Exception) {
             errorMessage.value = e.message
         } finally {
-            if (voucher.value != null) {
+            if (voucher.value.second != null) {
                 isLoading.value = false
             } else {
-                unrecognised()
+                unrecognised(voucher.value.first!!)
             }
         }
     }
@@ -71,7 +72,7 @@ fun VoucherInformationScreen(
                         onParentClick()
                     }
 
-                    VoucherCard(voucher.value)
+                    VoucherCard(voucher.value.second)
                 }
             }
         }

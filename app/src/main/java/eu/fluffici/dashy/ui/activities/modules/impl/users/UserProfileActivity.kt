@@ -27,7 +27,6 @@ class UserProfileActivity : Module(
             UserProfileScreen(
                 user = user!!,
                 lastLogins = listOf(),
-                lastAuditLogs = listOf(),
                 onParentClick = {
                     this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                 }

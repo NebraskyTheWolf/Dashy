@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,7 +31,9 @@ import eu.fluffici.calendar.shared.generateUsers
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditLogItem
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
+import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -42,10 +45,12 @@ fun UsersList(
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val users = remember { mutableStateOf(listOf<User>()) }
+    val currentPage = remember { mutableIntStateOf(1) }
 
-    LaunchedEffect(key1 = true) {
+
+    LaunchedEffect(key1 = currentPage.intValue) {
         try {
-            val result = generateUsers()
+            val result = generateUsers(currentPage.intValue)
             users.value = result
         } catch (e: Exception) {
             errorMessage.value = e.message
@@ -75,13 +80,26 @@ fun UsersList(
                         onParentClick()
                     }
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp)
+                    PaginateButtons(
+                        onNextClick = {
+                            currentPage.intValue += 1
+                            isLoading.value = true
+                        },
+                        onPrevClick = {
+                            currentPage.intValue -= 1
+                            isLoading.value = true
+                        },
+                        currentPage = currentPage.intValue,
+                        maxPages = users.value[0].maxPages!!
                     ) {
-                        items(users.value) { user ->
-                            UserItem(user = user, onUserCardClick = onUserClick)
-                            Spacer(modifier = Modifier.height(16.dp))
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            items(users.value) { user ->
+                                UserItem(user = user, onUserCardClick = onUserClick)
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }
@@ -99,8 +117,8 @@ fun UserItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-            onUserCardClick(user)
-        },
+                onUserCardClick(user)
+            },
         shape = RoundedCornerShape(8.dp),
         backgroundColor = MaterialTheme.colors.surface,
         elevation = 4.dp,
@@ -111,8 +129,8 @@ fun UserItem(
         ) {
             NetworkImage(user = user,
                 modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
+                    .size(56.dp)
+                    .clip(CircleShape)
             )
 
             Spacer(modifier = Modifier.width(16.dp))

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
+import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.Dialog
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.VoucherInformationScreen
 import eu.fluffici.dashy.utils.newIntent
 
@@ -20,15 +21,13 @@ class VoucherInfoActivity : Module(
         this.performCheck()
 
         setContent {
-            VoucherInformationScreen(
-                encodedData = intent.getStringExtra("encodedData"),
-                onParentClick = {
+            Dialog(
+                encodedData = intent.getStringExtra("encodedData")!!,
+                onSuccessConfirm = {
                     this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                 },
-                unrecognised = {
-                    this.startActivity(this.getParentUI().apply {
-                        putExtra("error", "The voucher you have scanned is invalid.")
-                    })
+                onFailureConfirm = {
+                    this.newIntent(Intent(this.applicationContext, MainActivity::class.java))
                 }
             )
         }

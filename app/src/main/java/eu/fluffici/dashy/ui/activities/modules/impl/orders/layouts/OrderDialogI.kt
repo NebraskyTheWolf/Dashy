@@ -12,34 +12,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.fluffici.calendar.shared.makeTypedPayment
+import eu.fluffici.calendar.shared.fetchVoucher
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.entities.Order
+import eu.fluffici.dashy.entities.Error
+import eu.fluffici.dashy.entities.Voucher
 import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.appFontFamily
 import eu.fluffici.dashy.ui.activities.components.Dialog
 
-enum class TransactionType(val type: String) {
-    CASH("CASH"), VOUCHER("VOUCHER")
-}
-
-data class TransactionBody(
-    val order: Order,
-    val transactionType: TransactionType,
-    val voucherBody: String
-)
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PaymentInProgressScreen(
-    transaction: TransactionBody,
+fun Dialog(
+    encodedData: String,
     onSuccessConfirm: () -> Unit = {},
     onFailureConfirm: () -> Unit = {},
 ) {
-    var transactionStatus by remember { mutableStateOf(Pair<String?, String?>(null, null)) }
+    var transactionStatus by remember { mutableStateOf(Pair<Error?, Voucher?>(null, null)) }
 
     LaunchedEffect(key1 = true) {
-        transactionStatus = makeTypedPayment(orderId = transaction.order.order_id, transaction.transactionType.type, transaction.voucherBody)
+        transactionStatus = fetchVoucher(encodedData = encodedData)
     }
 
     Box(modifier = Modifier
@@ -49,7 +40,9 @@ fun PaymentInProgressScreen(
 
         Column {
             if (transactionStatus.first != null) {
-                DashboardTitle(text = "Go back", icon = R.drawable.square_arrow_left_svg, true) {}
+                DashboardTitle(text = "Go back", icon = R.drawable.square_arrow_left_svg, true) {
+                    onSuccessConfirm()
+                }
             }
 
             Box(
@@ -70,19 +63,17 @@ fun PaymentInProgressScreen(
         }
 
         if (transactionStatus.second != null) {
-            Dialog(
-                title = "Payment success.",
-                message = transactionStatus.second.toString(),
-                onConfirm = onSuccessConfirm,
-                onCancel = { },
-                hasDismiss = false
+            VoucherInformationScreen(
+                encodedData = encodedData,
+                onParentClick = onSuccessConfirm,
+                unrecognised = {}
             )
         }
 
         if (transactionStatus.first != null) {
             Dialog(
-                title = "Payment failed.",
-                message = transactionStatus.first.toString(),
+                title = "Error",
+                message = transactionStatus.first!!.message,
                 onConfirm = onFailureConfirm,
                 onCancel = { },
                 hasDismiss = false
@@ -91,7 +82,7 @@ fun PaymentInProgressScreen(
 
         if (transactionStatus.first == null && transactionStatus.second == null) {
             Dialog(
-                title = "Payment failed.",
+                title = "Failed.",
                 message = "Unable to contact Fluffici servers.",
                 onConfirm = onFailureConfirm,
                 onCancel = { },

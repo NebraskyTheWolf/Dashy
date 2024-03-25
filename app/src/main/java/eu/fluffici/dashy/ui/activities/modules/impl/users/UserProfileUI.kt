@@ -1,7 +1,11 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.users
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -11,27 +15,38 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.fluffici.calendar.shared.Audit
 import eu.fluffici.calendar.shared.User
+import eu.fluffici.calendar.shared.generateUserAudit
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.ui.activities.DashboardTitle
+import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditLogItem
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserProfileScreen(
     user: User,
     lastLogins: List<String> = listOf(),
     lastAuditLogs: List<String>  = listOf(),
-    onTerminateClicked: () -> Unit = {},
     onParentClick: () -> Unit = {}
 ) {
+    val auditLogList = remember { mutableStateOf(listOf<Audit.AuditLogEntry>()) }
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(key1 = true) {
-        isLoading.value = false
+        try {
+            val result = generateUserAudit(user.name!!)
+            auditLogList.value = result
+        } catch (e: Exception) {
+            errorMessage.value = e.message
+        } finally {
+            isLoading.value = false
+        }
     }
 
     if (isLoading.value) {
@@ -64,10 +79,7 @@ fun UserProfileScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     LastLoginsCard(lastLogins = lastLogins)
                     Spacer(modifier = Modifier.height(24.dp))
-                    LastAuditLogsCard(lastAuditLogs = lastAuditLogs)
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    TerminateButton(onClick = onTerminateClicked)
+                    LastAuditLogsCard(lastAuditLogs = auditLogList.value)
                 }
             }
         }
@@ -160,7 +172,7 @@ fun LastLoginsCard(lastLogins: List<String>) {
 }
 
 @Composable
-fun LastAuditLogsCard(lastAuditLogs: List<String>) {
+fun LastAuditLogsCard(lastAuditLogs: List<Audit.AuditLogEntry>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = 8.dp
@@ -175,12 +187,22 @@ fun LastAuditLogsCard(lastAuditLogs: List<String>) {
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(8.dp))
-            lastAuditLogs.forEach { auditLog ->
-                Text(
-                    text = "• $auditLog",
-                    fontSize = 14.sp,
-                    color = Color.Black
-                )
+            LazyColumn {
+                items(lastAuditLogs) { log ->
+                    Text(
+                        text = "• ${log.action}",
+                        fontSize = 14.sp,
+                        color = Color.Black,
+                        fontFamily = appFontFamily
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "• ${log.timestamp}",
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -199,25 +221,3 @@ fun TerminateButton(onClick: () -> Unit) {
         )
     }
 }
-
-@Preview
-@Composable
-fun PreviewUserProfileScreen() {
-    UserProfileScreen(
-        user = User(
-            id = 0,
-            name = "OwO",
-            email = "owo@fluffici.eu",
-            avatar = 0,
-            avatarId = null,
-            iconBadges = listOf(
-                R.drawable.shield_check_filled_svg,
-                R.drawable.code_svg,
-                R.drawable.file_analytics_svg,
-            )
-        ),
-        lastLogins = listOf("Last Login 1", "Last Login 2"),
-        lastAuditLogs = listOf("Audit Log 1", "Audit Log 2")
-    ) {}
-}
-

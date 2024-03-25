@@ -52,7 +52,7 @@ fun fetchOrder(orderId: String): Pair<String?, Order?>  {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-suspend fun fetchVoucher(encodedData: String?): Voucher? = withContext(Dispatchers.IO) {
+suspend fun fetchVoucher(encodedData: String?): Pair<eu.fluffici.dashy.entities.Error?, Voucher?> = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
 
     val request = Request.Builder()
@@ -65,13 +65,21 @@ suspend fun fetchVoucher(encodedData: String?): Voucher? = withContext(Dispatche
         val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
 
         if (data.has("error")) {
-            return@withContext null
+            return@withContext Pair(eu.fluffici.dashy.entities.Error(
+                data.get("status").asBoolean,
+                data.get("error").asString,
+                data.get("message").asString,
+            ), null)
         }
 
-        return@withContext Json.decodeFromString<Voucher>(data.get("data").asJsonObject.toString())
+        return@withContext Pair(null, Json.decodeFromString<Voucher>(data.get("data").asJsonObject.toString()))
     }
 
-    return@withContext null
+    return@withContext Pair(eu.fluffici.dashy.entities.Error(
+        false,
+        "UNABLE_TO_CONNECT",
+        "Unable to contact Fluffici servers.",
+    ), null)
 }
 
 

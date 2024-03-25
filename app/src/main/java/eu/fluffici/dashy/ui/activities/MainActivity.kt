@@ -33,6 +33,7 @@ class MainActivity : PDAAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
+
         setContent {
             DashboardUI(context = applicationContext, eventBus = this.mBus)
         }

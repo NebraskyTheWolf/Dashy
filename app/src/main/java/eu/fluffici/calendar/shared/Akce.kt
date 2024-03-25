@@ -44,7 +44,7 @@ data class Audit(
     val slug: String,
     val entry: AuditLogEntry
 ) {
-    data class AuditLogEntry(val id: Int, val user: String, val action: String, val timestamp: String, val iconResourceId: Int)
+    data class AuditLogEntry(val id: Int, val user: String, val action: String, val timestamp: String, val iconResourceId: Int, val maxPages: Int = 1)
 }
 
 @Parcelize
@@ -54,7 +54,8 @@ data class User(
     val email: String?,
     val avatar: Int,
     val avatarId: String?,
-    var iconBadges: List<Int>?
+    var iconBadges: List<Int>?,
+    var maxPages: Int?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
@@ -62,7 +63,8 @@ data class User(
         parcel.readString(),
         parcel.readInt(),
         parcel.readString(),
-        listOf()
+        listOf(),
+        parcel.readInt()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -138,12 +140,12 @@ suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-suspend fun generateAudit(): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
+suspend fun generateAudit(page: Int = 1): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Audit.AuditLogEntry>()
 
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/audit")
+        .url("https://api.fluffici.eu/api/audit?page=$page")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
@@ -160,7 +162,8 @@ suspend fun generateAudit(): List<Audit.AuditLogEntry> = withContext(Dispatchers
                     it.name,
                     it.type,
                     it.created_at,
-                    R.drawable.baseline_density_large_svg
+                    R.drawable.baseline_density_large_svg,
+                    element.asJsonObject.get("last_page").asInt
                 )
             )
         }
@@ -173,12 +176,48 @@ suspend fun generateAudit(): List<Audit.AuditLogEntry> = withContext(Dispatchers
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-suspend fun generateUsers(): List<User> = withContext(Dispatchers.IO) {
+suspend fun generateUserAudit(target: String = ""): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
+    val result = mutableListOf<Audit.AuditLogEntry>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/user/audit?username=$target")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        val events: List<AuditModel> = Json.decodeFromString(element.asJsonObject.get("data").asJsonArray.toString())
+
+        events.forEach {
+            result.add(
+                Audit.AuditLogEntry(
+                    it.id,
+                    it.name,
+                    it.type,
+                    it.created_at,
+                    R.drawable.baseline_density_large_svg,
+                    1
+                )
+            )
+        }
+
+    } else {
+        Log.d("AuditLog", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext result
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.IO) {
     val result = mutableListOf<User>()
 
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/users")
+        .url("https://api.fluffici.eu/api/users?page=$page")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
@@ -196,7 +235,8 @@ suspend fun generateUsers(): List<User> = withContext(Dispatchers.IO) {
                     it.email,
                     it.avatar,
                     it.avatar_id,
-                    determinesBadges(it)
+                    determinesBadges(it),
+                    element.asJsonObject.get("last_page").asInt
                 )
             )
         }
