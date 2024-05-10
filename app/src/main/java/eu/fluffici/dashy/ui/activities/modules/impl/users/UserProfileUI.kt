@@ -23,7 +23,6 @@ import eu.fluffici.calendar.shared.generateUserAudit
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.appFontFamily
-import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditLogItem
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -77,9 +76,9 @@ fun UserProfileScreen(
                     ProfileHeader(user = user)
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    LastLoginsCard(lastLogins = lastLogins)
+                    user.bio?.let { LastLoginsCard(bio = it) }
                     Spacer(modifier = Modifier.height(24.dp))
-                    LastAuditLogsCard(lastAuditLogs = auditLogList.value)
+                    user.pronouns?.let { LastAuditLogsCard(pronouns = it) }
                 }
             }
         }
@@ -145,7 +144,7 @@ fun Avatar(user: User) {
 }
 
 @Composable
-fun LastLoginsCard(lastLogins: List<String>) {
+fun LastLoginsCard(bio: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = 8.dp
@@ -154,25 +153,23 @@ fun LastLoginsCard(lastLogins: List<String>) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Last Logins",
+                text = "About Me",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(8.dp))
-            lastLogins.forEach { login ->
-                Text(
-                    text = "• $login",
-                    fontSize = 14.sp,
-                    color = Color.Black
-                )
-            }
+            Text(
+                text = bio,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
     }
 }
 
 @Composable
-fun LastAuditLogsCard(lastAuditLogs: List<Audit.AuditLogEntry>) {
+fun LastAuditLogsCard(pronouns: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = 8.dp
@@ -181,29 +178,18 @@ fun LastAuditLogsCard(lastAuditLogs: List<Audit.AuditLogEntry>) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Last Audit Logs",
+                text = "Mood",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn {
-                items(lastAuditLogs) { log ->
-                    Text(
-                        text = "• ${log.action}",
-                        fontSize = 14.sp,
-                        color = Color.Black,
-                        fontFamily = appFontFamily
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "• ${log.timestamp}",
-                        fontSize = 14.sp,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
+            Text(
+                text = pronouns,
+                fontSize = 14.sp,
+                color = Color.Black,
+                fontFamily = appFontFamily
+            )
         }
     }
 }

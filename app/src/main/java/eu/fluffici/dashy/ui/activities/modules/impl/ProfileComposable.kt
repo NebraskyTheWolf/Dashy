@@ -48,7 +48,7 @@ fun Profile(context: Context) {
     ) {
 
         Text(
-            text = "Profile", // replace with string resource
+            text = "Profile",
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,

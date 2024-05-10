@@ -1,8 +1,10 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.users
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import eu.fluffici.calendar.shared.User
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
@@ -13,6 +15,7 @@ class UserProfileActivity : Module(
     "platform.systems.users"
 ) {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

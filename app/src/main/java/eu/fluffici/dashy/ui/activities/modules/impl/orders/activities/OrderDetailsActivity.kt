@@ -174,7 +174,7 @@ class OrderDetailsActivity : Module(
             val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
                 putExtra("ORDER", event.order)
                 putExtra("refundFailed", true)
-                putExtra("refundMessage", "Unable to contact Fluffici servers.")
+                putExtra("refundMessage", "Unable to contact Fluffici's servers.")
             }
             this.startActivity(intent)
         } else {

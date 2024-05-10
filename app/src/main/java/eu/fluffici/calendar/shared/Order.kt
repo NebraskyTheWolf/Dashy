@@ -124,6 +124,8 @@ fun makeCancellation(orderId: String?): Pair<String?, String?> {
         }
 
         return Pair(null, data.get("message").asString)
+    } else {
+        println(response.body?.string())
     }
 
     return Pair(null, null)
@@ -133,10 +135,15 @@ fun makeCancellation(orderId: String?): Pair<String?, String?> {
 suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: String): Pair<String?, String?> = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=${paymentType}&encodedData=${encoded}")
+        .url(getUrl(orderId, paymentType, encoded))
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
+
+    println(getUrl(orderId, paymentType, encoded))
+    println(getUrl(orderId, paymentType, encoded))
+    println(getUrl(orderId, paymentType, encoded))
+    println(getUrl(orderId, paymentType, encoded))
 
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
@@ -147,11 +154,15 @@ suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: Str
         }
 
         return@withContext Pair(null, data.get("message").asString)
-    } else {
-        Log.d("OrderManager", "Unable to fetch products from the remote server.")
     }
 
     return@withContext Pair(null, null)
+}
+
+private fun getUrl(orderId: String?, paymentType: String, encoded: String): String {
+    if (paymentType == "VOUCHER")
+        return "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=VOUCHER&encodedData=${encoded}"
+    return "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=CASH"
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

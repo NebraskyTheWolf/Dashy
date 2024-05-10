@@ -15,5 +15,7 @@ data class UserModel(
     val fcm_token: String?,
     val is_fcm: Boolean,
     val language: String,
-    val deleted_at: String?
+    val deleted_at: String?,
+    val bio: String?,
+    val pronouns: String?
 )

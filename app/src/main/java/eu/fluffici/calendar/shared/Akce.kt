@@ -55,7 +55,9 @@ data class User(
     val avatar: Int,
     val avatarId: String?,
     var iconBadges: List<Int>?,
-    var maxPages: Int?
+    var maxPages: Int?,
+    var bio: String?,
+    var pronouns: String?,
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
@@ -64,7 +66,9 @@ data class User(
         parcel.readInt(),
         parcel.readString(),
         listOf(),
-        parcel.readInt()
+        parcel.readInt(),
+        parcel.readString(),
+        parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -73,6 +77,9 @@ data class User(
         parcel.writeString(this.email)
         parcel.writeInt(this.avatar)
         parcel.writeString(this.avatarId)
+        parcel.writeInt(this.maxPages!!)
+        parcel.writeString(this.bio)
+        parcel.writeString(this.pronouns)
     }
 
     override fun describeContents(): Int {
@@ -236,7 +243,9 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
                     it.avatar,
                     it.avatar_id,
                     determinesBadges(it),
-                    element.asJsonObject.get("last_page").asInt
+                    element.asJsonObject.get("last_page").asInt,
+                    it.bio,
+                    it.pronouns
                 )
             )
         }
