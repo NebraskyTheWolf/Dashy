@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
+import eu.fluffici.dashy.entities.PartialUser
 import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
@@ -33,6 +34,9 @@ class MainActivity : PDAAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
+
+        val lang: PartialUser = Storage.getUser(this.applicationContext)
+        Toast.makeText(this.applicationContext, "Your language is: ${lang.language}", Toast.LENGTH_LONG).show()
 
         setContent {
             DashboardUI(context = applicationContext, eventBus = this.mBus)

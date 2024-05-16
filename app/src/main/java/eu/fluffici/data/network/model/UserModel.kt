@@ -17,5 +17,7 @@ data class UserModel(
     val language: String,
     val deleted_at: String?,
     val bio: String?,
-    val pronouns: String?
+    val pronouns: String?,
+    val discord_id: String?,
+    val discord_linked: Int,
 )

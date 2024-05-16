@@ -17,6 +17,7 @@ data class PartialUser(
     val avatar: Number,
     val avatarId: String?,
     val roles: String,
+    val language: String?
 ) {
     fun toJSON(): JsonObject {
         val data = JsonObject()
@@ -25,6 +26,7 @@ data class PartialUser(
         data.addProperty("avatar", this.avatar)
         data.addProperty("avatarId", this.avatarId)
         data.addProperty("roles", this.roles)
+        data.addProperty("language", this.language)
         return data;
     }
 }

@@ -6,11 +6,11 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.RequiresApi
+import com.anggrayudi.storage.extension.toBoolean
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
-import eu.fluffici.dashy.entities.Order
 import eu.fluffici.data.network.model.AuditModel
 import eu.fluffici.data.network.model.RoleModel
 import eu.fluffici.data.network.model.UserModel
@@ -58,7 +58,10 @@ data class User(
     var maxPages: Int?,
     var bio: String?,
     var pronouns: String?,
+    var discordId: String?,
+    var isDiscordLinked: Boolean
 ) : Parcelable {
+    @RequiresApi(Build.VERSION_CODES.Q)
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString(),
@@ -68,9 +71,12 @@ data class User(
         listOf(),
         parcel.readInt(),
         parcel.readString(),
-        parcel.readString()
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readBoolean()
     )
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(this.id)
         parcel.writeString(this.name)
@@ -80,6 +86,8 @@ data class User(
         parcel.writeInt(this.maxPages!!)
         parcel.writeString(this.bio)
         parcel.writeString(this.pronouns)
+        parcel.writeString(this.discordId)
+        this.isDiscordLinked?.let { parcel.writeBoolean(it) }
     }
 
     override fun describeContents(): Int {
@@ -87,6 +95,7 @@ data class User(
     }
 
     companion object CREATOR : Parcelable.Creator<User> {
+        @RequiresApi(Build.VERSION_CODES.Q)
         override fun createFromParcel(parcel: Parcel): User {
             return User(parcel)
         }
@@ -234,20 +243,26 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
         val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
         val events: List<UserModel> = Json.decodeFromString(element.asJsonObject.get("data").asJsonArray.toString())
 
+
         events.forEach {
-            result.add(
-                User(
-                    it.id,
-                    it.name,
-                    it.email,
-                    it.avatar,
-                    it.avatar_id,
-                    determinesBadges(it),
-                    element.asJsonObject.get("last_page").asInt,
-                    it.bio,
-                    it.pronouns
+            val roles: List<Int> = determinesBadges(it);
+
+            if (!roles.contains(R.drawable.antenna_bars_1_svg))
+                result.add(
+                    User(
+                        it.id,
+                        it.name,
+                        it.email,
+                        it.avatar,
+                        it.avatar_id,
+                        roles,
+                        element.asJsonObject.get("last_page").asInt,
+                        it.bio,
+                        it.pronouns,
+                        it.discord_id,
+                        it.discord_linked.toBoolean()
+                    )
                 )
-            )
         }
 
     } else {
@@ -306,18 +321,9 @@ fun determinesBadges(user: UserModel): List<Int> {
                     result.add(R.drawable.shopping_bag_edit_svg)
                 }
             }
-        }
-    } else {
-        if (user.deleted_at != null) {
-            result.add(R.drawable.lock_check_svg)
-        } else {
-            if (user.email_verified_at != null) {
-                result.add(R.drawable.at_svg)
-            } else {
-                result.add(R.drawable.at_off_svg)
-            }
+
             if (user.is_fcm) {
-                result.add(R.drawable.brand_android_svg)
+                result.add(R.drawable.badges_filled_svg)
             }
         }
     }
