@@ -1,29 +1,27 @@
-package eu.fluffici.dashy.ui.activities.modules.impl.orders.activities
+package eu.fluffici.dashy.ui.activities.modules.impl.otp.activities
 
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import eu.fluffici.calendar.shared.fetchOrder
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
-import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderUI
-import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.OtpUI
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductUI
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.util.Base64
 
-class OrdersActivity : Module(
-    "orders",
-    "platform.shop.orders.read",
+class OTPActivity : Module(
+    "otp",
+    "platform.firebase.notification.ack",
     false,
-    R.drawable.qrcode_svg,
-    R.string.orders
+    R.drawable.mfa,
+    R.string.otp_request
 ) {
 
     private val mBus = EventBus.getDefault()
@@ -33,7 +31,7 @@ class OrdersActivity : Module(
         this.performCheck()
 
         setContent {
-            OrderUI(eventBus = this.mBus, onParentClick = {
+            OtpUI(eventBus = this.mBus, onParentClick = {
                 this.newIntent(Intent(applicationContext, MainActivity::class.java))
             })
         }
@@ -52,22 +50,7 @@ class OrdersActivity : Module(
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onCardClick(event: CardClickEvent) {
         when (event.viewId) {
-            "scan_order" -> {
-                val intent = Intent(this, ScannerActivity::class.java).apply {
-                    putExtra("isOrder", true)
-                }
-                this.startActivity(intent)
-            }
-            "voucher_info" -> {
-                val intent = Intent(this, ScannerActivity::class.java).apply {
-                    putExtra("isVoucherInfo", true)
-                }
-                this.startActivity(intent)
-            }
-            "orders_list" -> {
-                val intent = Intent(applicationContext, OrderListActivity::class.java)
-                this.startActivity(intent)
-            }
+
         }
     }
 }

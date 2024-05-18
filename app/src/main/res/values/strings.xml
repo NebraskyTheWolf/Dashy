@@ -13,6 +13,8 @@
     <string name="carriers">Carriers</string>
     <string name="welcome">Welcome</string>
     <string name="orders">Orders</string>
+    <string name="products_one">Products</string>
+    <string name="otp_request">OTP Request</string>
     <string name="customer">Tickets</string>
     <string name="products">Calendar</string>
     <string name="reports">Orders</string>
@@ -49,11 +51,16 @@
     <string name="password">Password</string>
     <string name="stock">Stock</string>
     <string name="product_list">Product list</string>
+    <string name="request">Request(s)</string>
+    <string name="history">History</string>
     <string name="scan_user">Scan User</string>
     <string name="customerss">Customers</string>
     <string name="order_management">Order management</string>
     <string name="scan_order">Scan order</string>
     <string name="voucher_info">Voucher info</string>
+    <string name="stock_movement">Stock movement</string>
+    <string name="orders_list">Orders list</string>
+    <string name="inventory">Inventory</string>
     <string name="cancel_order">Cancel order</string>
     <string name="refund_order">Refund order</string>
     <string name="sign_in">Sign In</string>

@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
+import eu.fluffici.dashy.entities.Order
 import eu.fluffici.data.network.model.AuditModel
 import eu.fluffici.data.network.model.RoleModel
 import eu.fluffici.data.network.model.UserModel
@@ -247,7 +248,7 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
         events.forEach {
             val roles: List<Int> = determinesBadges(it);
 
-            if (!roles.contains(R.drawable.antenna_bars_1_svg))
+            if (!roles.contains(R.drawable.alert_triangle_filled_svg))
                 result.add(
                     User(
                         it.id,
@@ -272,12 +273,13 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
     return@withContext result
 }
 
-fun determinesBadges(user: UserModel): List<Int> {
-    val result = mutableListOf<Int>()
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers.IO) {
+    val result = mutableListOf<Order>()
 
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/users/roles?id=${user.id}")
+        .url("https://api.fluffici.eu/api/order-list?page=$page")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
@@ -285,46 +287,84 @@ fun determinesBadges(user: UserModel): List<Int> {
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
         val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
-        val usero: RoleModel = Json.decodeFromString(element.asJsonObject.get("data").toString())
+        val orders: List<Order> = Json.decodeFromString(element.asJsonObject.get("data").asJsonArray.toString())
 
-        if (usero.terminated) {
-            result.add(R.drawable.alert_hexagon_svg)
+        orders.forEach {
+            result.add(Order(
+                    it.id,
+                    it.order_id,
+                    it.first_name,
+                    it.last_name,
+                    it.first_address,
+                    it.second_address,
+                    it.postal_code,
+                    it.country,
+                    it.email,
+                    it.phone_number,
+                    it.status,
+                    it.customer_id,
+                    it.created_at,
+                    it.updated_at,
+                    it.maxPages
+            ))
+        }
+
+    } else {
+        Log.d("OrdersManager", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext result
+}
+
+fun determinesBadges(userModel: UserModel): List<Int> {
+    val result = mutableListOf<Int>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/users/roles?id=${userModel.id}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        val user: RoleModel = Json.decodeFromString(element.asJsonObject.get("data").toString())
+
+        if (user.roles.isEmpty()) {
+            result.add(R.drawable.question_mark_svg)
         } else {
-            if (usero.roles.isEmpty()) {
-                result.add(R.drawable.question_mark_svg)
-            } else {
-                if (hasRole(usero.roles, "admin")) {
-                    result.add(R.drawable.shield_check_filled_svg)
-                }
-
-                if (hasRole(usero.roles, "dev")) {
-                    result.add(R.drawable.code_svg)
-                }
-
-                if (hasRole(usero.roles, "accountant")) {
-                    result.add(R.drawable.calculator_filled_svg)
-                }
-
-                if (hasRole(usero.roles, "members")) {
-                    result.add(R.drawable.antenna_bars_1_svg)
-                }
-
-                if (hasRole(usero.roles, "mod")) {
-                    result.add(R.drawable.hammer_svg)
-                }
-
-                if (hasRole(usero.roles, "comm")) {
-                    result.add(R.drawable.message_chatbot_svg)
-                }
-
-                if (hasRole(usero.roles, "shop_manager")) {
-                    result.add(R.drawable.shopping_bag_edit_svg)
-                }
+            if (hasRole(user.roles, "admin")) {
+                result.add(R.drawable.shield_check_filled_svg)
             }
 
-            if (user.is_fcm) {
-                result.add(R.drawable.badges_filled_svg)
+            if (hasRole(user.roles, "dev")) {
+                result.add(R.drawable.code_svg)
             }
+
+            if (hasRole(user.roles, "accountant")) {
+                result.add(R.drawable.calculator_filled_svg)
+            }
+
+            if (hasRole(user.roles, "mod")) {
+                result.add(R.drawable.hammer_svg)
+            }
+
+            if (hasRole(user.roles, "comm")) {
+                result.add(R.drawable.message_chatbot_svg)
+            }
+
+            if (hasRole(user.roles, "shop_manager")) {
+                result.add(R.drawable.shopping_bag_edit_svg)
+            }
+
+            if (hasRole(user.roles, "members")) {
+                result.add(R.drawable.alert_triangle_filled_svg)
+            }
+        }
+
+        if (userModel.is_fcm) {
+            result.add(R.drawable.badges_filled_svg)
         }
     }
 

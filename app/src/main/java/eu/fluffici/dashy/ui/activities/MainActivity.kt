@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
-import eu.fluffici.dashy.entities.PartialUser
 import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
@@ -16,6 +15,8 @@ import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.otp.activities.OTPActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
@@ -26,7 +27,6 @@ import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.util.Base64
 
 class MainActivity : PDAAppCompatActivity() {
     private val mBus = EventBus.getDefault()
@@ -34,9 +34,6 @@ class MainActivity : PDAAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
-
-        val lang: PartialUser = Storage.getUser(this.applicationContext)
-        Toast.makeText(this.applicationContext, "Your language is: ${lang.language}", Toast.LENGTH_LONG).show()
 
         setContent {
             DashboardUI(context = applicationContext, eventBus = this.mBus)
@@ -66,6 +63,12 @@ class MainActivity : PDAAppCompatActivity() {
             }
             "profile" -> {
                 newIntent(Intent(applicationContext, ProfileActivity::class.java))
+            }
+            "products" -> {
+                newIntent(Intent(applicationContext, ProductActivity::class.java))
+            }
+            "otp" -> {
+                newIntent(Intent(applicationContext, OTPActivity::class.java))
             }
             "parent" -> {
                 newIntent(this.intent)

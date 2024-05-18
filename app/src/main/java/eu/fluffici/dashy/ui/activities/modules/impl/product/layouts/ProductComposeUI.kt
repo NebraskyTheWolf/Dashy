@@ -1,4 +1,4 @@
-package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
+package eu.fluffici.dashy.ui.activities.modules.impl.product.layouts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,29 +17,28 @@ import eu.fluffici.dashy.ui.activities.DashboardUICard
 import org.greenrobot.eventbus.EventBus
 
 @Composable
-fun OrderUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
+fun ProductUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .padding(20.dp)
     ) {
-        DashboardTitle(text = "Order Management", icon = R.drawable.square_arrow_left_svg, true) {
+        DashboardTitle(text = "Product(s) Management", icon = R.drawable.square_arrow_left_svg, true) {
             onParentClick()
         }
 
         Spacer(modifier = Modifier.height(20.dp).background(color = Color.White))
-        OrdersGrid(eventBus)
+        ProductGrid(eventBus)
     }
 }
 
 @Composable
-fun OrdersGrid(eventBus: EventBus) {
+fun ProductGrid(eventBus: EventBus) {
     val orders = listOf(
-        DashboardUICard("scan_order", icon = R.drawable.qrcode_svg, text = R.string.scan_order),
-        DashboardUICard("orders_list", icon = R.drawable.list_details_svg, text = R.string.orders_list),
-        DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info),
-        )
+        DashboardUICard("product_list", icon = R.drawable.list_details_svg, text = R.string.product_list),
+        DashboardUICard("inventory", icon = R.drawable.box_svg, text = R.string.inventory)
+    )
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),

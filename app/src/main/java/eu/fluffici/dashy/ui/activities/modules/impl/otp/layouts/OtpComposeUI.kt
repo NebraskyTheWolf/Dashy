@@ -1,4 +1,4 @@
-package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
+package eu.fluffici.dashy.ui.activities.modules.impl.product.layouts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,36 +10,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.DashboardCard
 import eu.fluffici.dashy.ui.activities.DashboardTitle
 import eu.fluffici.dashy.ui.activities.DashboardUICard
 import org.greenrobot.eventbus.EventBus
 
 @Composable
-fun OrderUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
+fun OtpUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .padding(20.dp)
     ) {
-        DashboardTitle(text = "Order Management", icon = R.drawable.square_arrow_left_svg, true) {
+        DashboardTitle(text = "Authentication request(s)", icon = R.drawable.square_arrow_left_svg, true) {
             onParentClick()
         }
 
         Spacer(modifier = Modifier.height(20.dp).background(color = Color.White))
-        OrdersGrid(eventBus)
+        OTPGrid(eventBus)
     }
 }
 
 @Composable
-fun OrdersGrid(eventBus: EventBus) {
+fun OTPGrid(eventBus: EventBus) {
     val orders = listOf(
-        DashboardUICard("scan_order", icon = R.drawable.qrcode_svg, text = R.string.scan_order),
-        DashboardUICard("orders_list", icon = R.drawable.list_details_svg, text = R.string.orders_list),
-        DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info),
-        )
+        DashboardUICard("requests", icon = R.drawable.git_pull_request_svg, text = R.string.request),
+        DashboardUICard("history", icon = R.drawable.history_svg, text = R.string.history)
+    )
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
