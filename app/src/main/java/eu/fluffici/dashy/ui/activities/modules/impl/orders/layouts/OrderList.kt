@@ -75,7 +75,7 @@ fun OrdersList(
                 .padding(5.dp)) {
 
                 Column {
-                    DashboardTitle(text = "Users", icon = R.drawable.square_arrow_left_svg, true) {
+                    DashboardTitle(text = "Orders", icon = R.drawable.square_arrow_left_svg, true) {
                         onParentClick()
                     }
 
