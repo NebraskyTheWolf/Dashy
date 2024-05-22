@@ -20,8 +20,7 @@ data class Order(
     val status: String?,
     val customer_id: String?,
     val created_at: String?,
-    val updated_at: String?,
-    var maxPages: Int?,
+    val updated_at: String?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
@@ -37,8 +36,7 @@ data class Order(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.readString(),
-        parcel.readInt()
+        parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -56,7 +54,6 @@ data class Order(
         parcel.writeString(this.customer_id)
         parcel.writeString(this.created_at)
         parcel.writeString(this.updated_at)
-        this.maxPages?.let { parcel.writeInt(it) }
     }
 
     override fun describeContents(): Int {

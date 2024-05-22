@@ -1,21 +1,12 @@
 package eu.fluffici.dashy.ui.activities.modules
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.gson.Gson
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
-import eu.fluffici.dashy.ui.activities.common.ErrorView
-import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 abstract class Module(
     private val name: String,

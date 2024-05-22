@@ -28,11 +28,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import eu.fluffici.calendar.StatusBarColorUpdateEffect
+import eu.fluffici.calendar.pages.AkceCalendar
+import eu.fluffici.calendar.pages.toolbarColor
+import eu.fluffici.calendar.shared.declineOtp
+import eu.fluffici.calendar.shared.getLatestPendingOTP
+import eu.fluffici.calendar.shared.grantOtp
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.PermissionEntity
+import eu.fluffici.dashy.events.auth.OTPRequest
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
-import eu.fluffici.dashy.ui.activities.common.ErrorView
+import eu.fluffici.dashy.ui.activities.auth.LockScreen
+import eu.fluffici.dashy.ui.activities.common.DashboardUI
+import eu.fluffici.dashy.ui.activities.common.ErrorScreen
+import eu.fluffici.dashy.ui.activities.common.HomePage
+import eu.fluffici.dashy.ui.activities.common.Settings
+import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
+import eu.fluffici.dashy.ui.activities.experiment.LoginConfirmation
 import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
@@ -41,6 +54,8 @@ import eu.fluffici.dashy.ui.activities.modules.impl.otp.activities.OTPActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
+import eu.fluffici.dashy.ui.activities.settings.PrivacySettings
+import eu.fluffici.dashy.ui.activities.settings.SecuritySettings
 import eu.fluffici.dashy.ui.activities.theme.Shapes
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.Storage
@@ -55,8 +70,42 @@ class MainActivity : PDAAppCompatActivity() {
     private val mBus = EventBus.getDefault()
     private var mClient = OkHttpClient()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
+        this.mBus.register(this)
+
+        if (this.intent.hasExtra("isAuthentified")) {
+            Storage.isAuthentified = this.intent.getBooleanExtra("isAuthentified", false)
+        }
+
+        if (!Storage.isAuthentified && Storage.hasAuthentication(applicationContext)) {
+            newIntent(Intent(applicationContext, LockScreen::class.java))
+            return
+        }
+
+        if (this.intent.hasExtra("isConfirmed")) {
+            when (this.intent.getStringExtra("confirmedAction")) {
+                "otp_accepted" -> {
+                    mBus.post(OTPRequest(
+                        requestId = this.intent.getStringExtra("actionId")!!,
+                        status = "otp_accepted"
+                    ))
+                }
+                "otp_declined" -> {
+                    mBus.post(OTPRequest(
+                        requestId = this.intent.getStringExtra("actionId")!!,
+                        status = "otp_declined"
+                    ))
+                }
+            }
+        }
+
+        if (Storage.hasAuthentication(applicationContext)) {
+            this.mBus.post(CardClickEvent("fetch_latest_otp"))
+        } else {
+            Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
+        }
 
         setContent {
             BottomNavBarTheme {
@@ -68,8 +117,6 @@ class MainActivity : PDAAppCompatActivity() {
                 }
             }
         }
-
-        this.mBus.register(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -103,6 +150,49 @@ class MainActivity : PDAAppCompatActivity() {
             "parent" -> {
                 newIntent(this.intent)
             }
+
+            // Settings
+
+            "privacy" -> {
+                newIntent(Intent(applicationContext, PrivacySettings::class.java))
+            }
+            "security" -> {
+                newIntent(Intent(applicationContext, SecuritySettings::class.java))
+            }
+
+            // Automated action
+            "fetch_latest_otp" -> {
+                val latestPendingOTP: IAuthentication? = getLatestPendingOTP()
+                if (latestPendingOTP != null) {
+                    newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
+                        putExtra("requestId", latestPendingOTP.requestId)
+                    })
+                }
+            }
+        }
+
+        this.mBus.removeStickyEvent(event);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
+    fun onClick(event: OTPRequest) {
+        when (event.status) {
+            "otp_accepted" -> {
+                grantOtp(event.requestId)
+
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "You granted your OTP request.", Toast.LENGTH_LONG).show()
+                }
+            }
+
+            "otp_declined" -> {
+                declineOtp(event.requestId)
+
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "You declined your OTP request.", Toast.LENGTH_LONG).show()
+                }
+            }
         }
 
         this.mBus.removeStickyEvent(event);
@@ -125,10 +215,10 @@ class MainActivity : PDAAppCompatActivity() {
         if (response.isSuccessful) {
             if (body.error !== null) {
                 if (body.error === "ACCOUNT_TERMINATED") {
-                    val i = Intent(this, ErrorView::class.java)
+                    val i = Intent(this, ErrorScreen::class.java)
                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    i.putExtra("title", "Uh-Oh")
-                    i.putExtra("message", "Your account has been terminated.")
+                    i.putExtra("title", "Account termination.")
+                    i.putExtra("description", "Your account has been terminated.")
                     return newIntent(i)
                 }
             }
@@ -155,6 +245,7 @@ class MainActivity : PDAAppCompatActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainScreen(context: Context, mBus: EventBus) {
@@ -172,6 +263,7 @@ fun MainScreen(context: Context, mBus: EventBus) {
 fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         Screen.Home,
+        Screen.Calendar,
         Screen.Search,
         Screen.Settings
     )
@@ -207,32 +299,46 @@ fun currentRoute(navController: NavHostController): String? {
     return navBackStackEntry?.destination?.route
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationGraph(navController: NavHostController, context: Context, mBus: EventBus) {
     NavHost(navController, startDestination = Screen.Home.route) {
         composable(Screen.Home.route) { HomeScreen(applicationContext = context, mBus = mBus) }
+        composable(Screen.Calendar.route) { CalendarScreen(applicationContext = context, mBus = mBus) }
         composable(Screen.Search.route) { SearchScreen(applicationContext = context, mBus = mBus) }
         composable(Screen.Settings.route) { SettingsScreen(applicationContext = context, mBus = mBus) }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(applicationContext: Context, mBus: EventBus) {
+    StatusBarColorUpdateEffect(toolbarColor)
     HomePage()
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CalendarScreen(applicationContext: Context, mBus: EventBus) {
+    StatusBarColorUpdateEffect(toolbarColor)
+    AkceCalendar()
 }
 
 @Composable
 fun SearchScreen(applicationContext: Context, mBus: EventBus) {
+    StatusBarColorUpdateEffect(toolbarColor)
     DashboardUI(context = applicationContext, eventBus = mBus)
 }
 
 @Composable
 fun SettingsScreen(applicationContext: Context, mBus: EventBus) {
-    Settings()
+    StatusBarColorUpdateEffect(toolbarColor)
+    Settings(mBus = mBus)
 }
 
 sealed class Screen(val route: String, val title: String, val icon: Int) {
     data object Home : Screen("home", "Home", R.drawable.home_2_svg)
+    data object Calendar : Screen("calendar", "Calendar", R.drawable.calendar_event_svg)
     data object Search : Screen("dashboard", "Dashboard", R.drawable.apps_filled_svg)
     data object Settings : Screen("settings", "Settings", R.drawable.adjustments_plus_svg)
 }

@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.ui.activities.DashboardCard
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.DashboardUICard
+import eu.fluffici.dashy.ui.activities.common.DashboardCard
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.DashboardUICard
 import org.greenrobot.eventbus.EventBus
 
 @Composable

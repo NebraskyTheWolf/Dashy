@@ -1,6 +1,8 @@
 package eu.fluffici.dashy.entities
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kotlinx.serialization.Serializable
 
 data class LoginEntity(
     val error: String?,
@@ -10,11 +12,11 @@ data class LoginEntity(
     val user: PartialUser
 )
 
-
+@Serializable
 data class PartialUser(
     val username: String,
     val email: String,
-    val avatar: Number,
+    val avatar: Int,
     val avatarId: String?,
     val roles: String,
     val language: String?
@@ -27,6 +29,16 @@ data class PartialUser(
         data.addProperty("avatarId", this.avatarId)
         data.addProperty("roles", this.roles)
         data.addProperty("language", this.language)
+        return data;
+    }
+}
+
+data class PartialAuth(
+    val pinCode: String
+) {
+    fun toJSON(): JsonObject {
+        val data = JsonObject()
+        data.addProperty("pinCode", this.pinCode)
         return data;
     }
 }

@@ -12,10 +12,11 @@ import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
 import eu.fluffici.dashy.entities.Order
-import eu.fluffici.data.network.model.AuditModel
-import eu.fluffici.data.network.model.RoleModel
-import eu.fluffici.data.network.model.UserModel
-import eu.fluffici.data.network.model.hasRole
+import eu.fluffici.dashy.model.AuditModel
+import eu.fluffici.dashy.model.RoleModel
+import eu.fluffici.dashy.model.UserModel
+import eu.fluffici.dashy.model.hasRole
+import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -193,6 +194,89 @@ suspend fun generateAudit(page: Int = 1): List<Audit.AuditLogEntry> = withContex
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
+fun declineOtp(requestId: String): Boolean {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/@me/otp-request/${requestId}/decline")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        println(element.toString())
+        return true
+    } else {
+        Log.d("OTP", "Unable to fetch data from the remote server.")
+    }
+
+    return false
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun grantOtp(requestId: String): Boolean {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/grant")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        println(element.toString())
+        return true
+    } else {
+        Log.d("OTP", "Unable to fetch data from the remote server.")
+    }
+
+    return false
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getLatestPendingOTP(): IAuthentication? {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/user/@me/fetch-otp")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        println(element.toString())
+        return Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
+    } else {
+        Log.d("OTP", "Unable to fetch data from the remote server.")
+    }
+
+    return null
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/fetch")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        return@withContext Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
+    } else {
+        Log.d("UsersManager", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext null
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateUserAudit(target: String = ""): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Audit.AuditLogEntry>()
 
@@ -248,22 +332,21 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
         events.forEach {
             val roles: List<Int> = determinesBadges(it);
 
-            if (!roles.contains(R.drawable.alert_triangle_filled_svg))
-                result.add(
-                    User(
-                        it.id,
-                        it.name,
-                        it.email,
-                        it.avatar,
-                        it.avatar_id,
-                        roles,
-                        element.asJsonObject.get("last_page").asInt,
-                        it.bio,
-                        it.pronouns,
-                        it.discord_id,
-                        it.discord_linked.toBoolean()
-                    )
+            result.add(
+                User(
+                    it.id,
+                    it.name,
+                    it.email,
+                    it.avatar,
+                    it.avatar_id,
+                    roles,
+                    element.asJsonObject.get("last_page").asInt,
+                    it.bio,
+                    it.pronouns,
+                    it.discord_id,
+                    it.discord_linked.toBoolean()
                 )
+            )
         }
 
     } else {
@@ -272,6 +355,7 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
 
     return@withContext result
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers.IO) {
@@ -304,8 +388,7 @@ suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers
                     it.status,
                     it.customer_id,
                     it.created_at,
-                    it.updated_at,
-                    it.maxPages
+                    it.updated_at
             ))
         }
 
@@ -359,7 +442,7 @@ fun determinesBadges(userModel: UserModel): List<Int> {
             }
 
             if (hasRole(user.roles, "members")) {
-                result.add(R.drawable.alert_triangle_filled_svg)
+                result.add(R.drawable.user)
             }
         }
 

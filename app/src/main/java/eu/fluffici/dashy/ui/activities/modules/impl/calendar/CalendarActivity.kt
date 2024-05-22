@@ -27,7 +27,7 @@ class CalendarActivity : Module(
         this.performCheck()
 
         setContent {
-            AkceCalendar()
+
         }
     }
 

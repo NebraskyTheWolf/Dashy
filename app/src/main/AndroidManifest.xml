@@ -35,15 +35,6 @@
         </activity>
 
         <activity
-            android:name="eu.fluffici.dashy.ui.activities.common.ErrorView"
-            android:exported="true"
-            android:theme="@style/Theme.PDADashy">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name="eu.fluffici.dashy.ui.activities.auth.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
@@ -53,7 +44,7 @@
         </activity>
 
         <activity
-            android:name="eu.fluffici.dashy.ui.activities.auth.OTPActivity"
+            android:name="eu.fluffici.dashy.ui.activities.experiment.LoginConfirmation"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
             <intent-filter>
@@ -134,6 +125,33 @@
         </activity>
 
         <activity
+            android:name="eu.fluffici.dashy.ui.activities.auth.LockScreen"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.settings.PrivacySettings"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.settings.SecuritySettings"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name="eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductActivity"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
@@ -189,6 +207,15 @@
 
         <activity
             android:name="eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="eu.fluffici.dashy.ui.activities.common.ErrorScreen"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">
             <intent-filter>

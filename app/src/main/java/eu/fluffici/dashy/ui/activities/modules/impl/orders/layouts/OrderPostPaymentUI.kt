@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.sp
 import eu.fluffici.calendar.shared.makeTypedPayment
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.components.Dialog
 
 enum class TransactionType(val type: String) {

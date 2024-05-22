@@ -36,7 +36,7 @@ import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
 import eu.fluffici.dashy.entities.Transaction
-import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 
 @Composable
 fun OrderDetails(context: Context, order: Order) {
@@ -65,12 +65,15 @@ fun OrderDetails(context: Context, order: Order) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Customer Information", fontWeight = FontWeight.Bold,
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Name: ${order.first_name} ${order.last_name}",
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Text(text = "Email: ${order.email}",
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = "${order.phone_number}")
                 }
 
@@ -78,14 +81,18 @@ fun OrderDetails(context: Context, order: Order) {
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Customer Address", fontWeight = FontWeight.Bold,
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Address: ${order.first_address}",
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Text(text = "Complementary address: ${order.second_address}",
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Text(text = "Zip code: ${order.postal_code}",
-                        fontFamily = appFontFamily)
+                        fontFamily = appFontFamily
+                    )
                     Text(text = "Country: ${order.country}",
                         fontFamily = appFontFamily
                     )
@@ -179,16 +186,20 @@ fun TransactionCard(transaction: Transaction) {
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(text = "Transaction ID: ${transaction.transaction_id}", fontWeight = FontWeight.Bold,
-                    fontFamily = appFontFamily)
+                    fontFamily = appFontFamily
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Status: ${transaction.status}",
-                    fontFamily = appFontFamily)
+                    fontFamily = appFontFamily
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Amount: ${transaction.price} Kč",
-                    fontFamily = appFontFamily)
+                    fontFamily = appFontFamily
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Method of Payment: ${transaction.provider}",
-                    fontFamily = appFontFamily)
+                    fontFamily = appFontFamily
+                )
             }
         }
     }

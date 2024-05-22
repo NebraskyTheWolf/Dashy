@@ -10,10 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.events.module.CardClickEvent
-import eu.fluffici.dashy.ui.activities.DashboardCard
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.DashboardUICard
+import eu.fluffici.dashy.ui.activities.common.DashboardCard
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.DashboardUICard
 import org.greenrobot.eventbus.EventBus
 
 @Composable
@@ -38,8 +37,8 @@ fun OrdersGrid(eventBus: EventBus) {
     val orders = listOf(
         DashboardUICard("scan_order", icon = R.drawable.qrcode_svg, text = R.string.scan_order),
         DashboardUICard("orders_list", icon = R.drawable.list_details_svg, text = R.string.orders_list),
-        DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info),
-        )
+        DashboardUICard("voucher_info", icon = R.drawable.receipt_euro_svg, text = R.string.voucher_info)
+    )
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),

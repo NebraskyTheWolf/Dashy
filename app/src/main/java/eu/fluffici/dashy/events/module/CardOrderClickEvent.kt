@@ -1,3 +1,5 @@
 package eu.fluffici.dashy.events.module
 
-data class CardOrderClickEvent(val viewId: String)
+import eu.fluffici.dashy.entities.Order
+
+data class CardOrderClickEvent(val order: Order)

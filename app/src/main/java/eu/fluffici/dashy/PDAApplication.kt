@@ -13,7 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
 import com.scottyab.rootbeer.RootBeer
 import eu.fluffici.dashy.events.auth.Unauthorized
-import eu.fluffici.dashy.ui.activities.common.ErrorView
+import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.modules.ModuleManager
 import eu.fluffici.dashy.utils.RootCheck
 import eu.fluffici.dashy.utils.Storage
@@ -21,10 +21,6 @@ import eu.fluffici.dashy.utils.newIntent
 import okhttp3.OkHttpClient
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.util.concurrent.Executor
-
-
-
 
 open class PDAApplication : MultiDexApplication() {
 
@@ -34,6 +30,9 @@ open class PDAApplication : MultiDexApplication() {
     private val client = OkHttpClient()
 
     private val mBus = EventBus.getDefault()
+
+    open var isAuthentified = false
+
 
     override fun onCreate() {
         super.onCreate()
@@ -48,13 +47,13 @@ open class PDAApplication : MultiDexApplication() {
             || this.magiskCheck.isMagiskPresent
             || this.magiskCheck.isAlternateRoot) {
 
-            val i = Intent(this@PDAApplication, ErrorView::class.java)
+            val i = Intent(this@PDAApplication, ErrorScreen::class.java)
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             i.putExtra("title", "Rooted device.")
-            i.putExtra("message", "Tempered device detected.")
+            i.putExtra("description", "Tempered device detected.")
             newIntent(i)
 
-            return // Stuck the app loading
+            return
         }
 
         if (Storage.isAuthentified(applicationContext)) {
@@ -117,9 +116,10 @@ open class PDAApplication : MultiDexApplication() {
 
     @Subscribe(sticky = true)
     fun onLoginFailed(event: Unauthorized) {
-        val i = Intent(this@PDAApplication, ErrorView::class.java)
+        val i = Intent(this@PDAApplication, ErrorScreen::class.java)
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        i.putExtra("isUnauthorized", true)
+        i.putExtra("title", "Unauthorized.")
+        i.putExtra("description", "You do not have access to this application.")
         newIntent(i)
 
         this.mBus.removeStickyEvent(event);

@@ -21,11 +21,6 @@ public class ModuleManager {
 
         this.modules.add(new OrdersActivity());
         this.modules.add(new ProductActivity());
-
-        this.modules.add(new CalendarActivity());
-        this.modules.add(new OTPActivity());
-
-
     }
 
     public List<Module> getModules() {

@@ -2,7 +2,6 @@ package eu.fluffici.dashy.ui.activities.modules.impl.users
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,9 +28,9 @@ import eu.fluffici.calendar.clickable
 import eu.fluffici.calendar.shared.User
 import eu.fluffici.calendar.shared.generateUsers
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.appFontFamily
-import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditLogItem
+import eu.fluffici.dashy.entities.PartialUser
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
 
@@ -60,12 +59,12 @@ fun UsersList(
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
             LoadingIndicator()
         }
     } else {
         errorMessage.value?.let { error ->
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
                 Text(error)
             }
         } ?: run {
@@ -179,6 +178,25 @@ fun NetworkImage(user: User, modifier: Modifier = Modifier) {
     } else {
         AsyncImage(
             model = "https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff",
+            contentDescription = null,
+            modifier = modifier.size(56.dp),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@Composable
+fun NetworkImage(user: PartialUser, modifier: Modifier = Modifier) {
+    if (user.avatar == 1) {
+        AsyncImage(
+            model = "https://autumn.fluffici.eu/avatars/${user.avatarId}",
+            contentDescription = null,
+            modifier = modifier.size(56.dp),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        AsyncImage(
+            model = "https://ui-avatars.com/api/?name=${user.username}&background=0D8ABC&color=fff",
             contentDescription = null,
             modifier = modifier.size(56.dp),
             contentScale = ContentScale.Crop

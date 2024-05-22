@@ -16,8 +16,8 @@ import eu.fluffici.calendar.shared.fetchVoucher
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Error
 import eu.fluffici.dashy.entities.Voucher
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.components.Dialog
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -23,23 +23,24 @@ import eu.fluffici.calendar.clickable
 import eu.fluffici.calendar.shared.generateOrders
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Order
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.events.module.CardOrderClickEvent
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
+import org.greenrobot.eventbus.EventBus
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OrdersList(
     onParentClick: () -> Unit = {},
     onEmpty: () -> Unit = {},
-    onUserClick: (order: Order) -> Unit = {}
+    mBus: EventBus
 ) {
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val orders = remember { mutableStateOf(listOf<Order>()) }
     val currentPage = remember { mutableIntStateOf(1) }
-
 
     LaunchedEffect(key1 = currentPage.intValue) {
         try {
@@ -59,16 +60,15 @@ fun OrdersList(
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
             LoadingIndicator()
         }
     } else {
         errorMessage.value?.let { error ->
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(error)
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                Text(error, color = Color.White)
             }
         } ?: run {
-
             Box(modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
@@ -89,14 +89,14 @@ fun OrdersList(
                             isLoading.value = true
                         },
                         currentPage = currentPage.intValue,
-                        maxPages = orders.value[0].maxPages!!
+                        maxPages = 1
                     ) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp)
                         ) {
                             items(orders.value) { order ->
-                                OrderItem(order = order, onUserCardClick = onUserClick)
+                                OrderItem(order = order, mBus = mBus)
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
@@ -110,13 +110,13 @@ fun OrdersList(
 @Composable
 fun OrderItem(
     order: Order,
-    onUserCardClick: (order: Order) -> Unit = {}
+    mBus: EventBus
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onUserCardClick(order)
+                mBus.post(CardOrderClickEvent(order = order))
             },
         shape = RoundedCornerShape(8.dp),
         backgroundColor = MaterialTheme.colors.surface,

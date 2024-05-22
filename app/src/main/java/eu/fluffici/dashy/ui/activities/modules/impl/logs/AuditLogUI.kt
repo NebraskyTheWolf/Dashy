@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.sp
 import eu.fluffici.calendar.shared.Audit
 import eu.fluffici.calendar.shared.generateAudit
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.ui.activities.DashboardTitle
-import eu.fluffici.dashy.ui.activities.Gray
-import eu.fluffici.dashy.ui.activities.appFontFamily
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.Gray
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -60,12 +60,12 @@ fun AuditLogList(onParentClick: () -> Unit = {}) {
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
             LoadingIndicator()
         }
     } else {
         errorMessage.value?.let { error ->
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
                 Text(error)
             }
         } ?: run {
@@ -107,7 +107,7 @@ fun AuditLogList(onParentClick: () -> Unit = {}) {
 
 @Composable
 fun LoadingIndicator() {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+    Row(modifier = Modifier.fillMaxWidth().background(Color.Black), horizontalArrangement = Arrangement.Center) {
         CircularProgressIndicator(color = Color.Red)
     }
 }

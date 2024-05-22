@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -22,7 +21,7 @@ import eu.fluffici.calendar.shared.fetchVoucher
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.Error
 import eu.fluffici.dashy.entities.Voucher
-import eu.fluffici.dashy.ui.activities.DashboardTitle
+import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)

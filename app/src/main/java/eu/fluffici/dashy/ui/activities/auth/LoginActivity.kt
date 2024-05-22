@@ -31,7 +31,7 @@ import eu.fluffici.dashy.events.auth.LoginFailed
 import eu.fluffici.dashy.events.auth.LoginRequest
 import eu.fluffici.dashy.events.common.FirebaseSetup
 import eu.fluffici.dashy.ui.activities.MainActivity
-import eu.fluffici.dashy.ui.activities.common.ErrorView
+import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
 import okhttp3.OkHttpClient
@@ -197,10 +197,10 @@ class LoginActivity : AppCompatActivity() {
             val data = Gson().fromJson(response.body?.string(), JsonObject::class.java);
             if (!data.get("status").asBoolean) {
 
-                val i = Intent(applicationContext, ErrorView::class.java)
+                val i = Intent(applicationContext, ErrorScreen::class.java)
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                i.putExtra("title", "Uh-Oh")
-                i.putExtra("message", data.get("message").asString)
+                i.putExtra("title", "Firebase error")
+                i.putExtra("description", data.get("message").asString)
                 eu.fluffici.dashy.utils.startActivity(i)
             }
         }

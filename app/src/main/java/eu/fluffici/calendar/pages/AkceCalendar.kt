@@ -61,6 +61,7 @@ import eu.fluffici.calendar.shared.akceDateTimeFormatter
 import eu.fluffici.calendar.shared.displayText
 import eu.fluffici.calendar.shared.generateFlights
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -69,7 +70,7 @@ import java.util.Locale
 
 private val pageBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_page_bg_color)
 private val itemBackgroundColor: Color @Composable get() = colorResource(R.color.example_5_item_view_bg_color)
-private val toolbarColor: Color @Composable get() = colorResource(R.color.colorPrimary)
+val toolbarColor: Color @Composable get() = colorResource(R.color.colorPrimary)
 private val selectedItemColor: Color @Composable get() = colorResource(R.color.example_5_text_grey)
 private val inActiveTextColor: Color @Composable get() = colorResource(R.color.example_5_text_grey_light)
 
@@ -98,12 +99,12 @@ fun AkceCalendar() {
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            LoadingIndicator()
         }
     } else {
         errorMessage.value?.let { error ->
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
                 Text("An error occurred: $error")
             }
         } ?: run {
