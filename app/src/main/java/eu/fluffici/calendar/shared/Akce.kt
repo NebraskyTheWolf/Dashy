@@ -197,7 +197,7 @@ suspend fun generateAudit(page: Int = 1): List<Audit.AuditLogEntry> = withContex
 fun declineOtp(requestId: String): Boolean {
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/@me/otp-request/${requestId}/decline")
+        .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/decline")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
