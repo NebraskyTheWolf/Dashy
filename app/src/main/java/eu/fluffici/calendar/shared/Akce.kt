@@ -204,8 +204,6 @@ fun declineOtp(requestId: String): Boolean {
 
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
-        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
-        println(element.toString())
         return true
     } else {
         Log.d("OTP", "Unable to fetch data from the remote server.")
@@ -225,8 +223,6 @@ fun grantOtp(requestId: String): Boolean {
 
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
-        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
-        println(element.toString())
         return true
     } else {
         Log.d("OTP", "Unable to fetch data from the remote server.")

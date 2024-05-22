@@ -111,6 +111,11 @@ class LoginConfirmation : PDAAppCompatActivity() {
         this.mBus.unregister(this)
     }
 
+    override fun onStop() {
+        super.onStop()
+        this.mBus.unregister(this)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
     fun onClick(event: OTPRequest) {

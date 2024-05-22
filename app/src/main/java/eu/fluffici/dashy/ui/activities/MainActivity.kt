@@ -70,6 +70,8 @@ class MainActivity : PDAAppCompatActivity() {
     private val mBus = EventBus.getDefault()
     private var mClient = OkHttpClient()
 
+    private var mSafeGuard: Boolean = false
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
@@ -84,7 +86,8 @@ class MainActivity : PDAAppCompatActivity() {
             return
         }
 
-        if (this.intent.hasExtra("isConfirmed")) {
+        if (this.intent.hasExtra("isConfirmed") && !this.mSafeGuard) {
+            this.mSafeGuard = true
             when (this.intent.getStringExtra("confirmedAction")) {
                 "otp_accepted" -> {
                     mBus.post(OTPRequest(
@@ -166,6 +169,9 @@ class MainActivity : PDAAppCompatActivity() {
                 if (latestPendingOTP != null) {
                     newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
                         putExtra("requestId", latestPendingOTP.requestId)
+
+                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
+                                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                     })
                 }
             }
@@ -201,6 +207,14 @@ class MainActivity : PDAAppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         this.mBus.unregister(this)
+        this.mSafeGuard = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        this.mBus.unregister(this)
+        this.mSafeGuard = false
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
