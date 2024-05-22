@@ -1,5 +1,6 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ fun PaymentMethodSelection(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .padding(16.dp)
     ) {
         Text(
@@ -57,7 +59,7 @@ fun PaymentMethodSelection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(onClick = onCancelClick) {
+            Button(onClick = onCancelClick, modifier = Modifier.background(Color.White)) {
                 Text(text = "Cancel")
             }
         }
@@ -99,7 +101,7 @@ fun PaymentMethodOption(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().background(Color.White).clickable { onClick() },
         shape = RoundedCornerShape(4.dp),
         elevation = 4.dp
     ) {
@@ -116,7 +118,8 @@ fun PaymentMethodOption(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(text = text,
-                fontFamily = appFontFamily
+                fontFamily = appFontFamily,
+                color = Color.Black
             )
         }
     }

@@ -84,6 +84,7 @@ fun DashboardUI(context: Context, eventBus: EventBus) {
         }
     }
 }
+
 data class DashboardUICard(
     val name: String,
     val text: Int,
@@ -100,10 +101,11 @@ fun DashboardCard(module: DashboardUICard, eventBus: EventBus) {
                 eventBus.post(CardClickEvent(module.name))
             }
             .height(160.dp)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize()) {
-
+            modifier = Modifier.fillMaxSize()
+        ) {
             Image(painter = painterResource(id = module.icon), contentDescription = null,
                 modifier = Modifier
                     .size(64.dp, 64.dp)

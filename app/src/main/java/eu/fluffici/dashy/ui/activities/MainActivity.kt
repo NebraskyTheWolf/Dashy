@@ -1,17 +1,35 @@
 package eu.fluffici.dashy.ui.activities
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
@@ -20,9 +38,20 @@ import androidx.compose.material.Text
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,10 +69,14 @@ import eu.fluffici.dashy.events.auth.OTPRequest
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
 import eu.fluffici.dashy.ui.activities.auth.LockScreen
+import eu.fluffici.dashy.ui.activities.common.CrashAlertScreen
 import eu.fluffici.dashy.ui.activities.common.DashboardUI
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.common.HomePage
+import eu.fluffici.dashy.ui.activities.common.RequestPermissionScreen
 import eu.fluffici.dashy.ui.activities.common.Settings
+import eu.fluffici.dashy.ui.activities.common.appFontFamily
+import eu.fluffici.dashy.ui.activities.components.DottedBackground
 import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
 import eu.fluffici.dashy.ui.activities.experiment.LoginConfirmation
 import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
@@ -60,19 +93,24 @@ import eu.fluffici.dashy.ui.activities.theme.Shapes
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 
 class MainActivity : PDAAppCompatActivity() {
     private val mBus = EventBus.getDefault()
     private var mClient = OkHttpClient()
-
     private var mSafeGuard: Boolean = false
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    var executor = Executors.newScheduledThreadPool(10)
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         this.mBus.register(this)
@@ -105,20 +143,40 @@ class MainActivity : PDAAppCompatActivity() {
         }
 
         if (Storage.hasAuthentication(applicationContext)) {
-            this.mBus.post(CardClickEvent("fetch_latest_otp"))
+            this.executor.scheduleWithFixedDelay({
+                this.mBus.post(CardClickEvent("fetch_latest_otp"))
+            }, 2, 10, TimeUnit.SECONDS)
         } else {
             Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
         }
 
         setContent {
-            BottomNavBarTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    MainScreen(context = applicationContext, mBus = this.mBus)
+            RequestPermissionScreen(
+                permissionName = "Notifications",
+                permission = Manifest.permission.POST_NOTIFICATIONS,
+                onChecking = {
+                    SplashScreen(mBus = this.mBus, isCycling = true)
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Checking permissions registries.", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onGranted = {
+                    BottomNavBarTheme {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colors.background
+                        ) {
+                            DottedBackground()
+                            if (Storage.isLoaded) {
+                                MainScreen(context = applicationContext, mBus = this.mBus)
+                            } else {
+                                SplashScreen(mBus = this.mBus)
+                                Storage.isLoaded = true
+                            }
+                        }
+                    }
                 }
-            }
+            )
         }
     }
 
@@ -257,6 +315,33 @@ class MainActivity : PDAAppCompatActivity() {
             newIntent(this.intent)
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission is granted. Continue with the action.
+        } else {
+            requestNotificationPermission()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestNotificationPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission is granted
+            }
+            else -> {
+                // Request the permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -388,3 +473,88 @@ fun BottomNavBarTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
         content = content
     )
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun SplashScreen(mBus: EventBus, isCycling: Boolean = false) {
+    var startMainScreen by remember { mutableStateOf(false) }
+    var isConnected by remember { mutableStateOf(true) }
+
+    val context = LocalContext.current
+
+    if (!isCycling) {
+        LaunchedEffect(Unit) {
+            delay(3000)
+            isConnected = checkNetworkConnectivity(context)
+            startMainScreen = true
+        }
+    }
+
+    if (startMainScreen) {
+        if (isConnected) {
+            MainScreen(context = context, mBus = mBus)
+        } else {
+            CrashAlertScreen(
+                title = "Connectivity issues detected.",
+                description = "You seem to be offline. Please check your internet settings."
+            )
+        }
+    } else {
+        SplashContent()
+    }
+}
+
+@Composable
+fun SplashContent() {
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val progress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.Black
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.fluffici_logo),
+                contentDescription = "Brand Logo",
+                modifier = Modifier.size(300.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Skvělá komunita čeká na tebe!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = appFontFamily,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+            CircularProgressIndicator(
+                progress = progress,
+                color = Color.Red,
+                strokeWidth = 4.dp
+            )
+        }
+    }
+}
+fun checkNetworkConnectivity(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return false
+    val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+    return when {
+        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+        else -> false
+    }
+}
+
