@@ -243,8 +243,12 @@ fun getLatestPendingOTP(): IAuthentication? {
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
         val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
-        println(element.toString())
-        return Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
+
+        return if (element.asJsonObject.has("data")) {
+            Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
+        } else {
+            null
+        }
     } else {
         Log.d("OTP", "Unable to fetch data from the remote server.")
     }

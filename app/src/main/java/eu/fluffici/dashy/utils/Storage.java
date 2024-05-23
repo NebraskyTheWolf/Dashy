@@ -90,6 +90,18 @@ public class Storage {
         return new Gson().fromJson(sharedPreferences.getString("authentication", null), PartialAuth.class);
     }
 
+    public static boolean isContentProtection(@NonNull Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("PDACrendentials", Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean("contentProtection", false);
+    }
+
+    public static void setContentProtection(@NonNull Context context, boolean value) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("PDACrendentials", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("contentProtection", value);
+        editor.apply();
+    }
+
     public static String getAccessToken(@NonNull Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("PDACrendentials", Context.MODE_PRIVATE);
         return sharedPreferences.getString("BEARER", null);

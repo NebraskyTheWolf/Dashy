@@ -52,6 +52,7 @@ val appFontFamily = FontFamily(
 )
 
 val Gray = Color(0xFF2D2D2D)
+val FlufficiDark = Color(0xFF1a1c1c)
 
 @Composable
 fun DashboardUI(context: Context, eventBus: EventBus) {

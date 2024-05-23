@@ -1,9 +1,11 @@
 package eu.fluffici.dashy.ui.activities.settings
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -19,8 +21,10 @@ import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.SettingsSwitchStateUpdate
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.MainActivity
+import eu.fluffici.dashy.ui.activities.auth.LockScreen
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
+import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -34,7 +38,7 @@ class PrivacySettings : PDAAppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            PrivacySettingsScreen(mBus = this.mBus)
+            PrivacySettingsScreen(mBus = this.mBus, context = applicationContext)
         }
 
         this.mBus.register(this)
@@ -55,16 +59,35 @@ class PrivacySettings : PDAAppCompatActivity() {
             }
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
+    fun onClick(event: SettingsSwitchStateUpdate) {
+        when (event.route) {
+            "sensitivePrivacy" -> {
+                if (event.value) {
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Content protection enabled", Toast.LENGTH_LONG).show()
+                    }
+                    Storage.setContentProtection(applicationContext, true)
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Content protection disabled", Toast.LENGTH_LONG).show()
+                    }
+                    Storage.setContentProtection(applicationContext, false)
+                }
+            }
+        }
+    }
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun PrivacySettingsScreen(
-    mBus: EventBus
+    mBus: EventBus,
+    context: Context
 ) {
-    val setting1 by remember { mutableStateOf(false) }
-    val setting2 by remember { mutableStateOf(false) }
-    val setting3 by remember { mutableStateOf(false) }
+    var hideSensitiveContent by remember { mutableStateOf(Storage.isContentProtection(context)) }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -82,81 +105,13 @@ fun PrivacySettingsScreen(
                 mBus.post(CardClickEvent("parent"))
             }
 
-            PrivacySettingItem(
-                title = "Enable Location Tracking",
-                description = "Allow apps to access your location",
-                isEnabled = setting1,
-                route = "tracking",
+            SecuritySettingItem(
+                title = "Sensitive content protection",
+                route = "sensitivePrivacy",
+                description = "Hide all sensitive content on the home page",
+                isEnabled = hideSensitiveContent,
+                onToggle = { hideSensitiveContent = it },
                 mBus = mBus
-            )
-
-            PrivacySettingItem(
-                title = "Allow Data Collection",
-                description = "Share data with third-party services",
-                isEnabled = setting2,
-                route = "data",
-                mBus = mBus
-            )
-
-            PrivacySettingItem(
-                title = "Use Biometric Authentication",
-                description = "Enable fingerprint or face recognition",
-                isEnabled = setting3,
-                route = "biometrics",
-                mBus = mBus
-            )
-        }
-    }
-}
-
-@Composable
-fun PrivacySettingItem(
-    title: String,
-    route: String,
-    description: String,
-    isEnabled: Boolean,
-    mBus: EventBus
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color.DarkGray,
-        shape = MaterialTheme.shapes.medium,
-        elevation = 4.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.h6.copy(color = Color.White),
-                    fontFamily = appFontFamily
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.body2.copy(color = Color.Gray),
-                    fontFamily = appFontFamily
-                )
-            }
-
-            Switch(
-                checked = isEnabled,
-                onCheckedChange = {
-                   mBus.post(SettingsSwitchStateUpdate(route = route, value = it))
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colors.primary,
-                    uncheckedThumbColor = Color.Gray
-                )
             )
         }
     }

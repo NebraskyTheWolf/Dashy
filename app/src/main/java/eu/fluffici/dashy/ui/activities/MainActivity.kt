@@ -100,6 +100,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 
@@ -108,7 +109,7 @@ class MainActivity : PDAAppCompatActivity() {
     private var mClient = OkHttpClient()
     private var mSafeGuard: Boolean = false
 
-    var executor = Executors.newScheduledThreadPool(10)
+    private var executor: ScheduledExecutorService = Executors.newScheduledThreadPool(10)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?)  {
@@ -410,7 +411,7 @@ fun NavigationGraph(navController: NavHostController, context: Context, mBus: Ev
 fun HomeScreen(applicationContext: Context, mBus: EventBus) {
     StatusBarColorUpdateEffect(toolbarColor)
     DottedBackground()
-    HomePage()
+    HomePage(applicationContext)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

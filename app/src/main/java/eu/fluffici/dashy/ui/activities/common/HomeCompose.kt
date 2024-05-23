@@ -1,6 +1,7 @@
 package eu.fluffici.dashy.ui.activities.common
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -25,12 +26,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.ui.activities.components.StyledCard
 import eu.fluffici.dashy.ui.activities.settings.SettingsScreenTheme
 import org.greenrobot.eventbus.EventBus
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun HomePage() {
+fun HomePage(
+    context: Context
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,6 +63,16 @@ fun HomePage() {
                         color = Color.White,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    StyledCard(context = context, title = "Latest order(s)", borderColor = Color.Red, onClick = { }) { }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    StyledCard(context = context, title = "Accounting statistics", borderColor = Color.Red, onClick = { }) { }
+
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
