@@ -156,9 +156,6 @@ class MainActivity : PDAAppCompatActivity() {
                 permission = Manifest.permission.POST_NOTIFICATIONS,
                 onChecking = {
                     SplashScreen(mBus = this.mBus, isCycling = true)
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "Checking permissions registries.", Toast.LENGTH_SHORT).show()
-                    }
                 },
                 onGranted = {
                     BottomNavBarTheme {
@@ -166,7 +163,6 @@ class MainActivity : PDAAppCompatActivity() {
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colors.background
                         ) {
-                            DottedBackground()
                             if (Storage.isLoaded) {
                                 MainScreen(context = applicationContext, mBus = this.mBus)
                             } else {
@@ -413,6 +409,7 @@ fun NavigationGraph(navController: NavHostController, context: Context, mBus: Ev
 @Composable
 fun HomeScreen(applicationContext: Context, mBus: EventBus) {
     StatusBarColorUpdateEffect(toolbarColor)
+    DottedBackground()
     HomePage()
 }
 
@@ -420,6 +417,7 @@ fun HomeScreen(applicationContext: Context, mBus: EventBus) {
 @Composable
 fun CalendarScreen(applicationContext: Context, mBus: EventBus) {
     StatusBarColorUpdateEffect(toolbarColor)
+    DottedBackground()
     AkceCalendar()
 }
 

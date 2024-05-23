@@ -38,6 +38,7 @@ import eu.fluffici.dashy.PDAApplication
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.PartialUser
 import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.ui.activities.components.DottedBackground
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.utils.Storage
 import org.greenrobot.eventbus.EventBus
@@ -66,6 +67,8 @@ fun DashboardUI(context: Context, eventBus: EventBus) {
         .fillMaxSize()
         .background(Color.Black)
         .padding(5.dp)) {
+
+        DottedBackground()
 
         Column {
             DashboardTitle(text = "Welcome ${user.value?.username}", icon = R.drawable.user_circle_svg) {

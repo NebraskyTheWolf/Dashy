@@ -22,7 +22,7 @@ fun DottedBackground() {
             while (x < size.width) {
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color.Blue.copy(alpha = 0.07f), Color.Transparent),
+                        colors = listOf(Color.White.copy(alpha = 0.09f), Color.Transparent),
                         center = Offset(x, y),
                         radius = dotSize
                     ),
