@@ -55,6 +55,7 @@ import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.nextMonth
 import com.kizitonwose.calendar.core.previousMonth
 import eu.fluffici.calendar.StatusBarColorUpdateEffect
+import eu.fluffici.calendar.clickable
 import eu.fluffici.calendar.rememberFirstCompletelyVisibleMonth
 import eu.fluffici.calendar.shared.Akce
 import eu.fluffici.calendar.shared.akceDateTimeFormatter
@@ -338,7 +339,9 @@ private fun AkceInformation(info: Akce.Info, isTitle: Boolean) {
             modifier = Modifier
                 .weight(0.7f)
                 .fillMaxHeight()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .clickable {
+                },
             verticalArrangement = Arrangement.Center,
         ) {
             Text(

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import eu.fluffici.dashy.ui.activities.auth.LoginActivity;
 import eu.fluffici.dashy.utils.Storage;
+import eu.fluffici.security.DeviceInfo;
 
 public class PDAAppCompatActivity extends AppCompatActivity {
 
@@ -23,7 +24,9 @@ public class PDAAppCompatActivity extends AppCompatActivity {
             Storage.removeAll(getApplicationContext());
         }
 
-        if (!Storage.isAuthentified(getApplicationContext())) {
+        DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
+
+        if (!Storage.isAuthentified(getApplicationContext()) && !deviceInfo.isPDADevice()) {
             Intent i = new Intent(getApplicationContext(), LoginActivity.class);
             i.setFlags(i.getFlags()
                     | FLAG_ACTIVITY_CLEAR_TOP

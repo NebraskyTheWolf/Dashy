@@ -12,6 +12,7 @@ import com.google.gson.JsonElement
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.EventEntity
 import eu.fluffici.dashy.entities.Order
+import eu.fluffici.dashy.model.AccountingModel
 import eu.fluffici.dashy.model.AuditModel
 import eu.fluffici.dashy.model.RoleModel
 import eu.fluffici.dashy.model.UserModel
@@ -61,7 +62,8 @@ data class User(
     var bio: String?,
     var pronouns: String?,
     var discordId: String?,
-    var isDiscordLinked: Boolean
+    var isDiscordLinked: Boolean,
+    var username: String?
 ) : Parcelable {
     @RequiresApi(Build.VERSION_CODES.Q)
     constructor(parcel: Parcel) : this(
@@ -75,7 +77,8 @@ data class User(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.readBoolean()
+        parcel.readBoolean(),
+        parcel.readString()
     )
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -90,6 +93,7 @@ data class User(
         parcel.writeString(this.pronouns)
         parcel.writeString(this.discordId)
         this.isDiscordLinked?.let { parcel.writeBoolean(it) }
+        parcel.writeString(this.username)
     }
 
     override fun describeContents(): Int {
@@ -344,7 +348,8 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
                     it.bio,
                     it.pronouns,
                     it.discord_id,
-                    it.discord_linked.toBoolean()
+                    it.discord_linked.toBoolean(),
+                    it.username
                 )
             )
         }
@@ -354,6 +359,31 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
     }
 
     return@withContext result
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun fetchAccountingStats(): List<AccountingModel> = withContext(Dispatchers.IO) {
+    val listModel = ArrayList<AccountingModel>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/accounting/statistics")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+
+        listModel.add(Json.decodeFromString<AccountingModel>(
+            element.asJsonObject.get("data").toString()
+        ))
+    } else {
+        Log.d("UsersManager", "Unable to fetch data from the remote server.")
+    }
+
+    return@withContext listModel
 }
 
 
@@ -452,6 +482,18 @@ fun determinesBadges(userModel: UserModel): List<Int> {
     }
 
     return result
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun ping(): Boolean {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    return !response.isSuccessful
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

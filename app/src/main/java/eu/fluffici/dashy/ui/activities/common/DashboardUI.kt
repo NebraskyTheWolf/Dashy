@@ -38,6 +38,7 @@ import eu.fluffici.dashy.PDAApplication
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.PartialUser
 import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.getDeviceInfo
 import eu.fluffici.dashy.ui.activities.components.DottedBackground
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.utils.Storage
@@ -69,11 +70,11 @@ fun DashboardUI(context: Context, eventBus: EventBus) {
         .background(Color.Black)
         .padding(5.dp)) {
 
-        DottedBackground()
-
         Column {
-            DashboardTitle(text = "Welcome ${user.value?.username}", icon = R.drawable.user_circle_svg) {
-                eventBus.post(CardClickEvent("profile"))
+            if (!context.getDeviceInfo().isPDADevice) {
+                DashboardTitle(text = "Welcome ${user.value?.username}", icon = R.drawable.user_circle_svg) {
+                    eventBus.post(CardClickEvent("profile"))
+                }
             }
 
             LazyVerticalGrid(

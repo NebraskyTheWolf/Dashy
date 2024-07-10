@@ -20,4 +20,5 @@ data class UserModel(
     val pronouns: String?,
     val discord_id: String?,
     val discord_linked: Int,
+    val username: String?,
 )

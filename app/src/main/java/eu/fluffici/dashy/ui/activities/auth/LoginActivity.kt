@@ -72,6 +72,12 @@ class LoginActivity : AppCompatActivity() {
                 progressColor = Color.WHITE
             }
 
+            if (!this.mEmail.text.toString().trim().endsWith("@fluffici.eu")) {
+                this.mEmail.error = "Only @fluffici.eu emails are accepted."
+
+                return@setOnClickListener
+            }
+
             this.mBus.post(LoginRequest(
                 this.mEmail.text.toString(),
                 this.mPassword.text.toString(),

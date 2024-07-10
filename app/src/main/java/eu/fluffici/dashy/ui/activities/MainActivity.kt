@@ -13,12 +13,15 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +71,7 @@ import eu.fluffici.dashy.entities.PermissionEntity
 import eu.fluffici.dashy.events.auth.OTPRequest
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
+import eu.fluffici.dashy.getDeviceInfo
 import eu.fluffici.dashy.ui.activities.auth.LockScreen
 import eu.fluffici.dashy.ui.activities.common.CrashAlertScreen
 import eu.fluffici.dashy.ui.activities.common.DashboardUI
@@ -102,6 +106,7 @@ import org.greenrobot.eventbus.ThreadMode
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 
 class MainActivity : PDAAppCompatActivity() {
@@ -116,64 +121,82 @@ class MainActivity : PDAAppCompatActivity() {
         super.onCreate(savedInstanceState)
         this.mBus.register(this)
 
-        if (this.intent.hasExtra("isAuthentified")) {
-            Storage.isAuthentified = this.intent.getBooleanExtra("isAuthentified", false)
-        }
+        if (!applicationContext.getDeviceInfo().isPDADevice()) {
+            if (this.intent.hasExtra("isAuthentified")) {
+                Storage.isAuthentified = this.intent.getBooleanExtra("isAuthentified", false)
+            }
 
-        if (!Storage.isAuthentified && Storage.hasAuthentication(applicationContext)) {
-            newIntent(Intent(applicationContext, LockScreen::class.java))
-            return
-        }
+            if (!Storage.isAuthentified && Storage.hasAuthentication(applicationContext)) {
+                newIntent(Intent(applicationContext, LockScreen::class.java))
+                return
+            }
 
-        if (this.intent.hasExtra("isConfirmed") && !this.mSafeGuard) {
-            this.mSafeGuard = true
-            when (this.intent.getStringExtra("confirmedAction")) {
-                "otp_accepted" -> {
-                    mBus.post(OTPRequest(
-                        requestId = this.intent.getStringExtra("actionId")!!,
-                        status = "otp_accepted"
-                    ))
-                }
-                "otp_declined" -> {
-                    mBus.post(OTPRequest(
-                        requestId = this.intent.getStringExtra("actionId")!!,
-                        status = "otp_declined"
-                    ))
+            if (this.intent.hasExtra("isConfirmed") && !this.mSafeGuard) {
+                this.mSafeGuard = true
+                when (this.intent.getStringExtra("confirmedAction")) {
+                    "otp_accepted" -> {
+                        mBus.post(OTPRequest(
+                            requestId = this.intent.getStringExtra("actionId")!!,
+                            status = "otp_accepted"
+                        ))
+                    }
+                    "otp_declined" -> {
+                        mBus.post(OTPRequest(
+                            requestId = this.intent.getStringExtra("actionId")!!,
+                            status = "otp_declined"
+                        ))
+                    }
                 }
             }
-        }
 
-        if (Storage.hasAuthentication(applicationContext)) {
-            this.executor.scheduleWithFixedDelay({
-                this.mBus.post(CardClickEvent("fetch_latest_otp"))
-            }, 2, 10, TimeUnit.SECONDS)
-        } else {
-            Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
-        }
+            if (Storage.hasAuthentication(applicationContext)) {
+                this.executor.scheduleWithFixedDelay({
+                    this.mBus.post(CardClickEvent("fetch_latest_otp"))
+                }, 2, 10, TimeUnit.SECONDS)
+            } else {
+                Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
+            }
 
-        setContent {
-            RequestPermissionScreen(
-                permissionName = "Notifications",
-                permission = Manifest.permission.POST_NOTIFICATIONS,
-                onChecking = {
-                    SplashScreen(mBus = this.mBus, isCycling = true)
-                },
-                onGranted = {
-                    BottomNavBarTheme {
-                        Surface(
-                            modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colors.background
-                        ) {
-                            if (Storage.isLoaded) {
-                                MainScreen(context = applicationContext, mBus = this.mBus)
-                            } else {
-                                SplashScreen(mBus = this.mBus)
-                                Storage.isLoaded = true
+            setContent {
+                RequestPermissionScreen(
+                    permissionName = "Notifications",
+                    permission = Manifest.permission.POST_NOTIFICATIONS,
+                    onChecking = {
+                        SplashScreen(mBus = this.mBus, isCycling = true)
+                    },
+                    onGranted = {
+                        BottomNavBarTheme {
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colors.background
+                            ) {
+                                if (Storage.isLoaded) {
+                                    MainScreen(context = applicationContext, mBus = this.mBus)
+                                } else {
+                                    SplashScreen(mBus = this.mBus)
+                                    Storage.isLoaded = true
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
+        } else {
+           setContent {
+               BottomNavBarTheme {
+                   Surface(
+                       modifier = Modifier.fillMaxSize(),
+                       color = MaterialTheme.colors.background
+                   ) {
+                       if (Storage.isLoaded) {
+                           MainScreen(context = applicationContext, mBus = this.mBus, isPda = true)
+                       } else {
+                           SplashScreen(mBus = this.mBus, isPda = true)
+                           Storage.isLoaded = true
+                       }
+                   }
+               }
+           }
         }
     }
 
@@ -344,14 +367,18 @@ class MainActivity : PDAAppCompatActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainScreen(context: Context, mBus: EventBus) {
-    val navController = rememberNavController()
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController = navController)
+fun MainScreen(context: Context, mBus: EventBus, isPda: Boolean = false) {
+    if (isPda) {
+        DashboardUI(context = context, eventBus = mBus)
+    } else {
+        val navController = rememberNavController()
+        Scaffold(
+            bottomBar = {
+                BottomNavigationBar(navController = navController)
+            }
+        ) {
+            NavigationGraph(navController = navController, context = context, mBus = mBus)
         }
-    ) {
-        NavigationGraph(navController = navController, context = context, mBus = mBus)
     }
 }
 
@@ -475,23 +502,27 @@ fun BottomNavBarTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SplashScreen(mBus: EventBus, isCycling: Boolean = false) {
+fun SplashScreen(mBus: EventBus, isCycling: Boolean = false, isPda: Boolean = false) {
     var startMainScreen by remember { mutableStateOf(false) }
     var isConnected by remember { mutableStateOf(true) }
+    var lastStepReached by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
-    if (!isCycling) {
-        LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
+        if (!isCycling) {
             delay(3000)
             isConnected = checkNetworkConnectivity(context)
-            startMainScreen = true
         }
     }
 
     if (startMainScreen) {
         if (isConnected) {
-            MainScreen(context = context, mBus = mBus)
+            if (isPda) {
+                DashboardUI(context = context, eventBus = mBus)
+            } else {
+                MainScreen(context = context, mBus = mBus)
+            }
         } else {
             CrashAlertScreen(
                 title = "Connectivity issues detected.",
@@ -499,12 +530,18 @@ fun SplashScreen(mBus: EventBus, isCycling: Boolean = false) {
             )
         }
     } else {
-        SplashContent()
+        SplashContent(
+            isPda = isPda,
+            onLastStepReached = {
+                lastStepReached = true
+                startMainScreen = true
+            }
+        )
     }
 }
 
 @Composable
-fun SplashContent() {
+fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val progress by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -514,6 +551,33 @@ fun SplashContent() {
             repeatMode = RepeatMode.Reverse
         ), label = ""
     )
+
+    val stepTexts = listOf(
+        "Step 1: Contacting Fluffici's servers...",
+        "Step 2: Authorizing device...",
+        "Step 3: Loading local database...",
+        "Step 4: Synchronizing user data...",
+        "Step 5: Preparing user interface...",
+        "Step 6: Finalizing setup..."
+    )
+    val currentStepText = remember { mutableStateOf(stepTexts[0]) }
+
+    if (isPda) {
+        LaunchedEffect(Unit) {
+            stepTexts.forEachIndexed { index, text ->
+                if (index != 0) {
+                    delay(Random.nextLong(500, 5000))
+                    currentStepText.value = text
+                }
+            }
+            onLastStepReached()
+        }
+    } else {
+        LaunchedEffect(Unit) {
+            delay(Random.nextLong(1500, 3000))
+            onLastStepReached()
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -537,6 +601,23 @@ fun SplashContent() {
                 fontFamily = appFontFamily,
                 color = Color.White
             )
+            if (isPda) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+                        animationSpec = tween(500),
+                        initialOffsetY = { it / 2 }
+                    ),
+                ) {
+                    Text(
+                        text = currentStepText.value,
+                        fontSize = 16.sp,
+                        fontFamily = appFontFamily,
+                        color = Color.White
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(30.dp))
             CircularProgressIndicator(
                 progress = progress,
@@ -546,6 +627,8 @@ fun SplashContent() {
         }
     }
 }
+
+
 fun checkNetworkConnectivity(context: Context): Boolean {
     val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val network = connectivityManager.activeNetwork ?: return false

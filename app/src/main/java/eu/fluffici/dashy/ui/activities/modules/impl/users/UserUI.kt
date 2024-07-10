@@ -46,7 +46,6 @@ fun UsersList(
     val users = remember { mutableStateOf(listOf<User>()) }
     val currentPage = remember { mutableIntStateOf(1) }
 
-
     LaunchedEffect(key1 = currentPage.intValue) {
         try {
             val result = generateUsers(currentPage.intValue)

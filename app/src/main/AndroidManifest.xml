@@ -17,9 +17,10 @@
 
     <application
         android:name="eu.fluffici.dashy.PDAApplication"
-        android:icon="@drawable/badges_svg"
+        android:icon="@mipmap/resys_icon"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/badges_svg"
+        android:roundIcon="@mipmap/resys_icon_round"
+        android:appCategory="productivity"
         android:zygotePreloadName="eu.fluffici.security.AppZygotePreload"
         android:supportsRtl="true"
         android:theme="@style/Theme.PDADashy"
@@ -246,5 +247,4 @@
             android:exported="false"
             android:useAppZygote="true" />
     </application>
-
 </manifest>

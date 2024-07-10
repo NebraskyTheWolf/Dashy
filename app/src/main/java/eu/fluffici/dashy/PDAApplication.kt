@@ -11,16 +11,25 @@ import android.provider.Settings
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.scottyab.rootbeer.RootBeer
+import eu.fluffici.calendar.shared.ping
+import eu.fluffici.dashy.events.auth.DeviceAuthorization
 import eu.fluffici.dashy.events.auth.Unauthorized
+import eu.fluffici.dashy.events.common.NetworkPing
+import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.modules.ModuleManager
 import eu.fluffici.dashy.utils.RootCheck
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
+import eu.fluffici.security.DeviceInfo
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 open class PDAApplication : MultiDexApplication() {
 
@@ -31,12 +40,12 @@ open class PDAApplication : MultiDexApplication() {
 
     private val mBus = EventBus.getDefault()
 
-    open var isAuthentified = false
+    private var isOffline = false
 
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
-
+        this.mBus.register(this)
         this.rootBeer = RootBeer(applicationContext)
 
         this.magiskCheck = RootCheck()
@@ -56,6 +65,23 @@ open class PDAApplication : MultiDexApplication() {
             return
         }
 
+        // Simple pinger request to detect when the device is offline.
+        this.mBus.post(NetworkPing())
+
+        if (isOffline) {
+            val i = Intent(this@PDAApplication, ErrorScreen::class.java)
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            i.putExtra("title", "Connectivity issues detected!")
+            i.putExtra("description", "It seems like your phone is offline. Please check your internet settings.")
+            newIntent(i)
+
+            return
+        }
+
+        if (applicationContext.getDeviceInfo().isPDADevice) {
+            this.mBus.postSticky(DeviceAuthorization(applicationContext.getDeviceInfo().GetDeviceId()))
+        }
+
         if (Storage.isAuthentified(applicationContext)) {
             System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
         }
@@ -72,8 +98,6 @@ open class PDAApplication : MultiDexApplication() {
                 askForNotificationPermission()
             }
         }
-
-        this.mBus.register(this)
     }
 
     companion object {
@@ -121,6 +145,59 @@ open class PDAApplication : MultiDexApplication() {
         i.putExtra("title", "Unauthorized.")
         i.putExtra("description", "You do not have access to this application.")
         newIntent(i)
+
+        this.mBus.removeStickyEvent(event);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    fun onNetworkPing(event: NetworkPing) {
+        this.isOffline = ping()
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.ASYNC)
+    fun onDeviceAuth(event: DeviceAuthorization) {
+        val request = Request.Builder()
+            .url("https://api.fluffici.eu/api/device/authorization?deviceId=${event.deviceId}")
+            .get()
+            .build()
+
+        val response = client.newCall(request).execute()
+        if (response.isSuccessful) {
+            val data = Gson().fromJson(response.body?.string(), JsonObject::class.java);
+            if (data.get("status").asBoolean) {
+                val body = data.get("data").asJsonObject
+
+                Storage.setAccessToken(this@PDAApplication.applicationContext, body.get("token").asString)
+                System.setProperty("X-Bearer-token", body.get("token").asString)
+
+                val i = Intent(this@PDAApplication, MainActivity::class.java)
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                newIntent(i)
+            } else {
+                if (data.has("message")
+                    && !data.get("message").asString.equals("Toto zařízení je neautorizované."))
+                {
+                    val i = Intent(this@PDAApplication, ErrorScreen::class.java)
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    i.putExtra("title", "Error while authenticating this device")
+                    i.putExtra("description", data.get("message").asString)
+                    newIntent(i)
+                } else {
+                    val i = Intent(this@PDAApplication, ErrorScreen::class.java)
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    i.putExtra("title", "Unauthorized device")
+                    i.putExtra("description", "Please register the device on the dashboard with this ID: " + applicationContext.getDeviceInfo().GetDeviceId())
+                    newIntent(i)
+                }
+            }
+        } else {
+            val i = Intent(this@PDAApplication, ErrorScreen::class.java)
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            i.putExtra("title", "Connectivity issues detected!")
+            i.putExtra("description", "It seems like your phone is offline. Please check your internet settings.")
+            newIntent(i)
+        }
 
         this.mBus.removeStickyEvent(event);
     }

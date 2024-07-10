@@ -229,7 +229,7 @@ fun InvitationScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "You can accept or decline this request. If you didn't request this login, please decline it ASAP.",
+                    text = "If you did not request this login, please decline it immediately. Otherwise, you can accept the request.",
                     modifier = Modifier.fillMaxWidth(),
                     fontFamily = appFontFamily,
                     color = Color.Gray
