@@ -42,7 +42,6 @@ open class PDAApplication : MultiDexApplication() {
 
     private var isOffline = false
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
         this.mBus.register(this)
@@ -51,19 +50,20 @@ open class PDAApplication : MultiDexApplication() {
         this.magiskCheck = RootCheck()
         this.magiskCheck.onStart(applicationContext)
 
-        if (this.rootBeer.isRooted
-            || this.rootBeer.isRootedWithBusyBoxCheck
-            || this.magiskCheck.isMagiskPresent
-            || this.magiskCheck.isAlternateRoot) {
+        if (!Build.MODEL.equals("Android SDK built for x86"))
+            if (this.rootBeer.isRooted
+                || this.rootBeer.isRootedWithBusyBoxCheck
+                || this.magiskCheck.isMagiskPresent
+                || this.magiskCheck.isAlternateRoot) {
 
-            val i = Intent(this@PDAApplication, ErrorScreen::class.java)
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            i.putExtra("title", "Rooted device.")
-            i.putExtra("description", "Tempered device detected.")
-            newIntent(i)
+                val i = Intent(this@PDAApplication, ErrorScreen::class.java)
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                i.putExtra("title", "Rooted device.")
+                i.putExtra("description", "Tempered device detected.")
+                newIntent(i)
 
-            return
-        }
+                return
+            }
 
         // Simple pinger request to detect when the device is offline.
         this.mBus.post(NetworkPing())
@@ -78,12 +78,12 @@ open class PDAApplication : MultiDexApplication() {
             return
         }
 
-        if (applicationContext.getDeviceInfo().isPDADevice) {
-            this.mBus.postSticky(DeviceAuthorization(applicationContext.getDeviceInfo().GetDeviceId()))
-        }
-
         if (Storage.isAuthentified(applicationContext)) {
             System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
+        } else {
+            if (applicationContext.getDeviceInfo().isPDADevice) {
+                this.mBus.postSticky(DeviceAuthorization(applicationContext.getDeviceInfo().GetDeviceId()))
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -108,7 +108,6 @@ open class PDAApplication : MultiDexApplication() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun askForNotificationPermission() {
         val dialog = AlertDialog.Builder(this)
             .setTitle("Permissions Required")
@@ -149,7 +148,6 @@ open class PDAApplication : MultiDexApplication() {
         this.mBus.removeStickyEvent(event);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onNetworkPing(event: NetworkPing) {
         this.isOffline = ping()
@@ -176,7 +174,7 @@ open class PDAApplication : MultiDexApplication() {
                 newIntent(i)
             } else {
                 if (data.has("message")
-                    && !data.get("message").asString.equals("Toto zařízení je neautorizované."))
+                    && !data.get("error").asString.equals("Zařízení_NENALEZENO"))
                 {
                     val i = Intent(this@PDAApplication, ErrorScreen::class.java)
                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -1,2 +1,2 @@
 package eu.fluffici.dashy.events.module
-data class OrderScannerEvent(val orderId: String, val type: String)
+data class OrderScannerEvent(val result: String, val type: String)

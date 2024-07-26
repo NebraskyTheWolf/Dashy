@@ -1,7 +1,5 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.users
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,8 +32,6 @@ import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UsersList(
     onParentClick: () -> Unit = {},

@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
+@SuppressWarnings("All")
 class OrderPayment : Module(
     "order_details",
     "platform.orders.write",
@@ -28,7 +29,6 @@ class OrderPayment : Module(
 
     private val mBus = EventBus.getDefault()
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
@@ -57,7 +57,7 @@ class OrderPayment : Module(
         when (event.type) {
             "CASH" -> {
                 val intent = Intent(this, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order.order_id)
                     putExtra("paymentType", "CASH")
                 }
 
@@ -65,7 +65,7 @@ class OrderPayment : Module(
             }
             "VOUCHER" -> {
                 val intent = Intent(this, ScannerActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order.order_id)
                     putExtra("isVoucher", true)
                 }
                 this.startActivity(intent)

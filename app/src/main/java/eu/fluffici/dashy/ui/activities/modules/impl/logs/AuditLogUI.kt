@@ -1,7 +1,5 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.logs
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,7 +38,6 @@ import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.Gray
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AuditLogList(onParentClick: () -> Unit = {}) {
     val isLoading = remember { mutableStateOf(true) }

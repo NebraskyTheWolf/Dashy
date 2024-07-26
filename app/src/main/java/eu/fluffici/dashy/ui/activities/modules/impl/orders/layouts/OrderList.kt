@@ -1,7 +1,5 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +28,6 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
 import org.greenrobot.eventbus.EventBus
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OrdersList(
     onParentClick: () -> Unit = {},
@@ -116,7 +113,7 @@ fun OrderItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                mBus.post(CardOrderClickEvent(order = order))
+                mBus.post(CardOrderClickEvent(order = order.order_id))
             },
         shape = RoundedCornerShape(8.dp),
         backgroundColor = MaterialTheme.colors.surface,
@@ -130,7 +127,7 @@ fun OrderItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = order.first_name!! + " " +  order.last_name!!,
+                    text = order.first_name + " " +  order.last_name,
                     style = MaterialTheme.typography.h6,
                     color = MaterialTheme.colors.onSurface,
                     fontWeight = FontWeight.Bold,
@@ -138,7 +135,7 @@ fun OrderItem(
                     fontFamily = appFontFamily
                 )
                 Text(
-                    text = order.status!!,
+                    text = order.status,
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                 )

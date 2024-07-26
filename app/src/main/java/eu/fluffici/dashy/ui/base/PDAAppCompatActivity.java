@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import eu.fluffici.dashy.ui.activities.auth.LoginActivity;
+import eu.fluffici.dashy.ui.activities.common.ErrorScreen;
 import eu.fluffici.dashy.utils.Storage;
 import eu.fluffici.security.DeviceInfo;
 
@@ -24,7 +25,15 @@ public class PDAAppCompatActivity extends AppCompatActivity {
             Storage.removeAll(getApplicationContext());
         }
 
-        DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
+        DeviceInfo deviceInfo = new DeviceInfo();
+
+        if (!Storage.isAuthentified(getApplicationContext()) || System.getProperty("X-Bearer-token") == null && deviceInfo.isPDADevice()) {
+            Intent i = new Intent(getApplicationContext(), ErrorScreen.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            i.putExtra("title", "Unable to authenticate");
+            i.putExtra("description", "It seems that your device skipped the authentication.");
+            return;
+        }
 
         if (!Storage.isAuthentified(getApplicationContext()) && !deviceInfo.isPDADevice()) {
             Intent i = new Intent(getApplicationContext(), LoginActivity.class);

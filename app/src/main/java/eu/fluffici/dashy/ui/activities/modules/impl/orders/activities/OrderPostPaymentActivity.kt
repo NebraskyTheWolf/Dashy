@@ -1,13 +1,9 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.activities
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
-import eu.fluffici.calendar.shared.fetchOrder
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.OrderPaymentStatusEvent
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.PaymentInProgressScreen
@@ -27,12 +23,12 @@ class OrderPostPaymentActivity : Module(
 
     private val mBus = EventBus.getDefault()
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
 
-        val order = intent.extras?.getParcelable<Order>("ORDER")
+        val order = intent.getStringExtra("orderId")
+
         val paymentType = intent.getStringExtra("paymentType")!!
         val encoded = intent.getStringExtra("encodedData") ?: ""
 
@@ -70,20 +66,19 @@ class OrderPostPaymentActivity : Module(
         this.mBus.unregister(this)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onPaymentStatus(event: OrderPaymentStatusEvent) {
         when (event.status) {
             "SUCCESS" -> {
                 val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order)
                 }
 
                 this.startActivity(intent)
             }
             "FAILED" -> {
                 val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order)
                     putExtra("paymentFailed", true)
                 }
                 this.startActivity(intent)

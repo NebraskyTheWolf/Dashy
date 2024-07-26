@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,11 +18,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -39,66 +41,94 @@ import eu.fluffici.dashy.entities.Transaction
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 
 @Composable
-fun OrderDetails(context: Context, order: Order) {
+fun OrderDetails(context: Context, order: Order?) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
+        shape = RoundedCornerShape(10.dp),
         elevation = 8.dp
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Order status: ${order.status}",
-                style = MaterialTheme.typography.h6,
+                text = "Order status: ${order!!.status}",
+                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp),
                 fontFamily = appFontFamily
             )
+
+            Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
+
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .background(Color(0xFFEFEFEF))
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.Start
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Customer Information", fontWeight = FontWeight.Bold,
-                        fontFamily = appFontFamily
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Name: ${order.first_name} ${order.last_name}",
-                        fontFamily = appFontFamily
-                    )
-                    Text(text = "Email: ${order.email}",
-                        fontFamily = appFontFamily
-                    )
-                    ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = "${order.phone_number}")
-                }
+                Text(
+                    text = "Customer Information",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = appFontFamily,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Name: ${order.first_name} ${order.last_name}",
+                    fontFamily = appFontFamily,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Email: ${order.email}",
+                    fontFamily = appFontFamily,
+                    fontSize = 14.sp
+                )
+                ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = order.phone_number)
+            }
 
-                Spacer(modifier = Modifier.width(4.dp))
+            Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
 
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Customer Address", fontWeight = FontWeight.Bold,
-                        fontFamily = appFontFamily
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Address: ${order.first_address}",
-                        fontFamily = appFontFamily
-                    )
-                    Text(text = "Complementary address: ${order.second_address}",
-                        fontFamily = appFontFamily
-                    )
-                    Text(text = "Zip code: ${order.postal_code}",
-                        fontFamily = appFontFamily
-                    )
-                    Text(text = "Country: ${order.country}",
-                        fontFamily = appFontFamily
-                    )
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFEFEFEF))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "Customer Address",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = appFontFamily,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextWithLabel(label = "Address:", value = order.first_address)
+                TextWithLabel(label = "Co.Address:", value = order.second_address)
+                TextWithLabel(label = "Zip code:", value = order.postal_code)
+                TextWithLabel(label = "Country:", value = order.country)
             }
         }
+    }
+}
+
+@Composable
+fun TextWithLabel(label: String, value: String) {
+    Row {
+        Text(
+            text = "$label ",
+            fontFamily = appFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 12.sp
+        )
+        Text(
+            text = value,
+            fontFamily = appFontFamily,
+            fontSize = 8.sp
+        )
     }
 }
 
@@ -107,7 +137,8 @@ fun ClickablePhoneNumber(context: Context, title: String, phoneNumber: String) {
     Row {
         Text(
             text = title,
-            color = LocalContentColor.current.copy(alpha = 0.5f)
+            fontWeight = FontWeight.Bold,
+            fontFamily = appFontFamily
         )
         Spacer(modifier = Modifier.width(8.dp))
         BasicText(
@@ -180,28 +211,40 @@ fun TransactionsList(transactions: List<Transaction>) {
 @Composable
 fun TransactionCard(transaction: Transaction) {
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text(text = "Transaction ID: ${transaction.transaction_id}", fontWeight = FontWeight.Bold,
-                    fontFamily = appFontFamily
-                )
+                TransactionDetail(title = "Transaction ID:", value = transaction.transaction_id?.replace("-", "")?.substring(0, 20))
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Status: ${transaction.status}",
-                    fontFamily = appFontFamily
-                )
+                TransactionDetail(title = "Status:", value = transaction.status)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Amount: ${transaction.price} Kč",
-                    fontFamily = appFontFamily
-                )
+                TransactionDetail(title = "Amount:", value = "${transaction.price} Kč")
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Method of Payment: ${transaction.provider}",
-                    fontFamily = appFontFamily
-                )
+                TransactionDetail(title = "Method of Payment:", value = transaction.provider)
             }
         }
+    }
+}
+
+@Composable
+fun TransactionDetail(title: String, value: String?) {
+    Row {
+        Text(
+            text = title,
+            fontFamily = appFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp // Slightly larger for titles
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = value!!,
+            fontFamily = appFontFamily,
+            fontSize = 12.sp // Smaller size for values
+        )
     }
 }
 
@@ -212,13 +255,13 @@ fun ProductsList(products: List<Product>) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Row(horizontalArrangement = Arrangement.Center) {
+            Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.alert_triangle_filled_svg),
-                    contentDescription = "Payment",
+                    contentDescription = "No Products",
                     tint = Color.Red
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "This order has no products.",
                     color = Color.White,
@@ -228,27 +271,22 @@ fun ProductsList(products: List<Product>) {
             }
         }
     } else {
-        Card(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            elevation = 8.dp
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Products",
-                    style = MaterialTheme.typography.h6,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    fontFamily = appFontFamily
-                )
-                LazyColumn {
-                    items(products) { product ->
-                        ProductCard(product = product)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+            Text(
+                text = "Products",
+                style = MaterialTheme.typography.h6,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 8.dp),
+                fontFamily = appFontFamily
+            )
+            LazyColumn {
+                items(products) { product ->
+                    ProductCard(product = product)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -260,20 +298,51 @@ fun ProductCard(product: Product) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.medium,
-        elevation = 8.dp
+            .padding(vertical = 8.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(10.dp)),
+        shape = RoundedCornerShape(10.dp),
+        elevation = 4.dp
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(text = "Product Name: ${product.product_name}", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Price: ${product.price} Kč")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Quantity: ${product.quantity}")
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = product.product_name,
+                style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
+                color = Color.Black,
+                fontFamily = appFontFamily
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row {
+                Text(
+                    text = "Price:",
+                    style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color.DarkGray,
+                    fontFamily = appFontFamily
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "${product.price} Kč",
+                    style = MaterialTheme.typography.body1,
+                    color = Color.Black,
+                    fontFamily = appFontFamily
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row {
+                Text(
+                    text = "Quantity:",
+                    style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color.DarkGray,
+                    fontFamily = appFontFamily
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "${product.quantity}",
+                    style = MaterialTheme.typography.body1,
+                    color = Color.Black,
+                    fontFamily = appFontFamily
+                )
             }
         }
     }

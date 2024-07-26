@@ -1,7 +1,5 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
@@ -24,12 +22,11 @@ enum class TransactionType(val type: String) {
 }
 
 data class TransactionBody(
-    val order: Order,
+    val order: String,
     val transactionType: TransactionType,
     val voucherBody: String
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PaymentInProgressScreen(
     transaction: TransactionBody,
@@ -39,7 +36,7 @@ fun PaymentInProgressScreen(
     var transactionStatus by remember { mutableStateOf(Pair<String?, String?>(null, null)) }
 
     LaunchedEffect(key1 = true) {
-        transactionStatus = makeTypedPayment(orderId = transaction.order.order_id, transaction.transactionType.type, transaction.voucherBody)
+        transactionStatus = makeTypedPayment(orderId = transaction.order, transaction.transactionType.type, transaction.voucherBody)
     }
 
     Box(modifier = Modifier

@@ -1,7 +1,5 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
@@ -24,7 +22,6 @@ import eu.fluffici.dashy.entities.Voucher
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun VoucherInformationScreen(
     encodedData: String?,

@@ -29,7 +29,6 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.settings.SettingsScreenTheme
 import org.greenrobot.eventbus.EventBus
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun HomePage(

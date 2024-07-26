@@ -15,7 +15,7 @@ import org.greenrobot.eventbus.EventBus
 class BarcodeAnalyzer(private val eventBus: EventBus, val intent: Intent) : ImageAnalysis.Analyzer {
 
     private val options = BarcodeScannerOptions.Builder()
-        .setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX)
+        .setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX, Barcode.FORMAT_UPC_A)
         .enableAllPotentialBarcodes()
         .build()
 
@@ -44,6 +44,10 @@ class BarcodeAnalyzer(private val eventBus: EventBus, val intent: Intent) : Imag
 
                             if (this.intent.hasExtra("isOrder")) {
                                 eventBus.post(OrderScannerEvent(it, "ORDER"))
+                            }
+
+                            if (this.intent.hasExtra("isProduct")) {
+                                eventBus.post(OrderScannerEvent(it, "PRODUCT"))
                             }
                         }
                 }.addOnCompleteListener {

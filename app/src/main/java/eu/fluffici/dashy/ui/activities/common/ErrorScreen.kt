@@ -32,7 +32,6 @@ import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.newIntent
 
 class ErrorScreen : PDAAppCompatActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
 

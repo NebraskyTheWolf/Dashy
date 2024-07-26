@@ -10,6 +10,7 @@ import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductUI
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -45,11 +46,15 @@ class ProductActivity : Module(
         this.mBus.unregister(this)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onCardClick(event: CardClickEvent) {
         when (event.viewId) {
-
+            "scan_product" -> {
+                val intent = Intent(this, ScannerActivity::class.java).apply {
+                    putExtra("isProduct", true)
+                }
+                this.startActivity(intent)
+            }
         }
     }
 }

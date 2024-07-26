@@ -17,7 +17,6 @@ class AuditActivity : Module(
     R.drawable.clipboard_data_svg,
     R.string.settings
 ) {
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()

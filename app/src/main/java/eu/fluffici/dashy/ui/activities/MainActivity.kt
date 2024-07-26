@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -116,12 +118,11 @@ class MainActivity : PDAAppCompatActivity() {
 
     private var executor: ScheduledExecutorService = Executors.newScheduledThreadPool(10)
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         this.mBus.register(this)
 
-        if (!applicationContext.getDeviceInfo().isPDADevice()) {
+        if (!applicationContext.getDeviceInfo().isPDADevice) {
             if (this.intent.hasExtra("isAuthentified")) {
                 Storage.isAuthentified = this.intent.getBooleanExtra("isAuthentified", false)
             }
@@ -189,7 +190,7 @@ class MainActivity : PDAAppCompatActivity() {
                        color = MaterialTheme.colors.background
                    ) {
                        if (Storage.isLoaded) {
-                           MainScreen(context = applicationContext, mBus = this.mBus, isPda = true)
+                           MainScreenPda(context = applicationContext, mBus = this.mBus, isPda = true)
                        } else {
                            SplashScreen(mBus = this.mBus, isPda = true)
                            Storage.isLoaded = true
@@ -200,7 +201,6 @@ class MainActivity : PDAAppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
     fun onClick(event: CardClickEvent) {
         when (event.viewId) {
@@ -258,7 +258,6 @@ class MainActivity : PDAAppCompatActivity() {
         this.mBus.removeStickyEvent(event);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
     fun onClick(event: OTPRequest) {
         when (event.status) {
@@ -336,7 +335,6 @@ class MainActivity : PDAAppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -347,7 +345,6 @@ class MainActivity : PDAAppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun requestNotificationPermission() {
         when {
             ContextCompat.checkSelfPermission(
@@ -364,7 +361,7 @@ class MainActivity : PDAAppCompatActivity() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@SuppressWarnings("All")
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainScreen(context: Context, mBus: EventBus, isPda: Boolean = false) {
@@ -380,6 +377,11 @@ fun MainScreen(context: Context, mBus: EventBus, isPda: Boolean = false) {
             NavigationGraph(navController = navController, context = context, mBus = mBus)
         }
     }
+}
+
+@Composable
+fun MainScreenPda(context: Context, mBus: EventBus, isPda: Boolean = false) {
+    DashboardUI(context = context, eventBus = mBus)
 }
 
 @Composable
@@ -422,6 +424,7 @@ fun currentRoute(navController: NavHostController): String? {
     return navBackStackEntry?.destination?.route
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationGraph(navController: NavHostController, context: Context, mBus: EventBus) {
@@ -433,7 +436,7 @@ fun NavigationGraph(navController: NavHostController, context: Context, mBus: Ev
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun HomeScreen(applicationContext: Context, mBus: EventBus) {
     StatusBarColorUpdateEffect(toolbarColor)
@@ -500,7 +503,6 @@ fun BottomNavBarTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Comp
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SplashScreen(mBus: EventBus, isCycling: Boolean = false, isPda: Boolean = false) {
     var startMainScreen by remember { mutableStateOf(false) }
@@ -566,7 +568,7 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
         LaunchedEffect(Unit) {
             stepTexts.forEachIndexed { index, text ->
                 if (index != 0) {
-                    delay(Random.nextLong(500, 5000))
+                    delay((500..5000).random().toLong())
                     currentStepText.value = text
                 }
             }
@@ -574,7 +576,7 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
         }
     } else {
         LaunchedEffect(Unit) {
-            delay(Random.nextLong(1500, 3000))
+            delay((1500..3000).random().toLong())
             onLastStepReached()
         }
     }
@@ -584,22 +586,25 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
         color = Color.Black
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp), // Adjust padding for small screens
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(id = R.drawable.fluffici_logo),
                 contentDescription = "Brand Logo",
-                modifier = Modifier.size(300.dp)
+                modifier = Modifier.size(if (isPda) 200.dp else 300.dp) // Adjust size for small screens
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Skvělá komunita čeká na tebe!",
-                fontSize = 20.sp,
+                fontSize = if (isPda) 16.sp else 20.sp, // Adjust font size for small screens
                 fontWeight = FontWeight.Bold,
                 fontFamily = appFontFamily,
-                color = Color.White
+                color = Color.White,
+                textAlign = TextAlign.Center // Ensure text is centered on small screens
             )
             if (isPda) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -614,7 +619,8 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
                         text = currentStepText.value,
                         fontSize = 16.sp,
                         fontFamily = appFontFamily,
-                        color = Color.White
+                        color = Color.White,
+                        textAlign = TextAlign.Center // Ensure text is centered on small screens
                     )
                 }
             }

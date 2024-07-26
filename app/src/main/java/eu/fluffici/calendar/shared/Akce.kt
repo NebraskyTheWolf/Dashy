@@ -1,8 +1,6 @@
 package eu.fluffici.calendar.shared
 
 import android.os.Build
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.RequiresApi
@@ -25,9 +23,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 
 private typealias Info = Akce.Info
 
@@ -50,7 +48,6 @@ data class Audit(
     data class AuditLogEntry(val id: Int, val user: String, val action: String, val timestamp: String, val iconResourceId: Int, val maxPages: Int = 1)
 }
 
-@Parcelize
 data class User(
     val id: Int,
     val name: String?,
@@ -64,53 +61,7 @@ data class User(
     var discordId: String?,
     var isDiscordLinked: Boolean,
     var username: String?
-) : Parcelable {
-    @RequiresApi(Build.VERSION_CODES.Q)
-    constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readInt(),
-        parcel.readString(),
-        listOf(),
-        parcel.readInt(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readBoolean(),
-        parcel.readString()
-    )
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(this.id)
-        parcel.writeString(this.name)
-        parcel.writeString(this.email)
-        parcel.writeInt(this.avatar)
-        parcel.writeString(this.avatarId)
-        parcel.writeInt(this.maxPages!!)
-        parcel.writeString(this.bio)
-        parcel.writeString(this.pronouns)
-        parcel.writeString(this.discordId)
-        this.isDiscordLinked?.let { parcel.writeBoolean(it) }
-        parcel.writeString(this.username)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<User> {
-        @RequiresApi(Build.VERSION_CODES.Q)
-        override fun createFromParcel(parcel: Parcel): User {
-            return User(parcel)
-        }
-
-        override fun newArray(size: Int): Array<User?> {
-            return arrayOfNulls(size)
-        }
-    }
-}
+)
 
 @RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
@@ -161,7 +112,6 @@ suspend fun generateFlights(): List<Akce> = withContext(Dispatchers.IO) {
     return@withContext result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateAudit(page: Int = 1): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Audit.AuditLogEntry>()
 
@@ -197,7 +147,6 @@ suspend fun generateAudit(page: Int = 1): List<Audit.AuditLogEntry> = withContex
     return@withContext result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun declineOtp(requestId: String): Boolean {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -216,7 +165,6 @@ fun declineOtp(requestId: String): Boolean {
     return false
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun grantOtp(requestId: String): Boolean {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -235,7 +183,6 @@ fun grantOtp(requestId: String): Boolean {
     return false
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun getLatestPendingOTP(): IAuthentication? {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -260,7 +207,6 @@ fun getLatestPendingOTP(): IAuthentication? {
     return null
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -280,7 +226,6 @@ suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext
     return@withContext null
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateUserAudit(target: String = ""): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Audit.AuditLogEntry>()
 
@@ -316,7 +261,6 @@ suspend fun generateUserAudit(target: String = ""): List<Audit.AuditLogEntry> = 
     return@withContext result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.IO) {
     val result = mutableListOf<User>()
 
@@ -361,7 +305,6 @@ suspend fun generateUsers(page: Int = 1): List<User> = withContext(Dispatchers.I
     return@withContext result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun fetchAccountingStats(): List<AccountingModel> = withContext(Dispatchers.IO) {
     val listModel = ArrayList<AccountingModel>()
 
@@ -386,8 +329,6 @@ suspend fun fetchAccountingStats(): List<AccountingModel> = withContext(Dispatch
     return@withContext listModel
 }
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Order>()
 
@@ -484,7 +425,6 @@ fun determinesBadges(userModel: UserModel): List<Int> {
     return result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun ping(): Boolean {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -496,6 +436,4 @@ fun ping(): Boolean {
     return !response.isSuccessful
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-val akceDateTimeFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("EEE'\n'dd MMM'\n'HH:mm")
+val akceDateTimeFormatter: SimpleDateFormat = SimpleDateFormat("EEE'\n'dd MMM'\n'HH:mm");

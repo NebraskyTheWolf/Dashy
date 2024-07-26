@@ -78,7 +78,7 @@ fun AnimatedIcon() {
     )
 
     Image(
-        painter = painterResource(id = R.drawable.scan_svg), // replace with your icon
+        painter = painterResource(id = R.drawable.scan_svg),
         contentDescription = "Alert Triangle",
         modifier = Modifier
             .size(80.dp)

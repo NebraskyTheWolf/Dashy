@@ -1,8 +1,6 @@
 package eu.fluffici.calendar.shared
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import eu.fluffici.dashy.entities.Order
@@ -16,15 +14,14 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.util.Base64
+import org.bouncycastle.util.encoders.Base64
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun fetchOrder(orderId: String): Pair<String?, Order?>  {
+suspend fun fetchOrder(orderId: String): Order? = withContext(Dispatchers.IO)  {
     val client = OkHttpClient()
 
     var request = Request.Builder()
     request = if (isBase64(orderId)) {
-        request.url("https://api.fluffici.eu/api/order?orderId=${String(Base64.getDecoder().decode(orderId))}")
+        request.url("https://api.fluffici.eu/api/order?orderId=${String(Base64.decode(orderId))}")
             .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
             .get()
     } else {
@@ -37,21 +34,17 @@ fun fetchOrder(orderId: String): Pair<String?, Order?>  {
     if (response.isSuccessful) {
         val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
 
-        if (data.has("error")) {
-            return Pair(data.get("message").asString, null)
-        }
+        if (data.has("error"))
+            return@withContext null
 
-        val order: Order = Json.decodeFromString(data.get("data").asJsonObject.get("order").asJsonObject.toString())
-
-        return Pair(null, order)
+        return@withContext Json.decodeFromString<Order>(data.get("data").asJsonObject.get("order").asJsonObject.toString())
     } else {
         Log.d("OrderManager", "Unable to fetch products from the remote server.")
     }
 
-    return Pair(null, null)
+    return@withContext null
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun fetchVoucher(encodedData: String?): Pair<eu.fluffici.dashy.entities.Error?, Voucher?> = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
 
@@ -83,7 +76,6 @@ suspend fun fetchVoucher(encodedData: String?): Pair<eu.fluffici.dashy.entities.
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun makeRefund(orderId: String?): Pair<String?, String?> {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -106,7 +98,6 @@ fun makeRefund(orderId: String?): Pair<String?, String?> {
     return Pair(null, null)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun makeCancellation(orderId: String?): Pair<String?, String?> {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -131,7 +122,6 @@ fun makeCancellation(orderId: String?): Pair<String?, String?> {
     return Pair(null, null)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: String): Pair<String?, String?> = withContext(Dispatchers.IO) {
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -139,11 +129,6 @@ suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: Str
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
-
-    println(getUrl(orderId, paymentType, encoded))
-    println(getUrl(orderId, paymentType, encoded))
-    println(getUrl(orderId, paymentType, encoded))
-    println(getUrl(orderId, paymentType, encoded))
 
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
@@ -165,13 +150,12 @@ private fun getUrl(orderId: String?, paymentType: String, encoded: String): Stri
     return "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=CASH"
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-suspend fun getProducts(order: Order): List<Product> = withContext(Dispatchers.IO) {
+suspend fun getProducts(order: Order?): List<Product> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Product>()
 
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order?orderId=${order.order_id}")
+        .url("https://api.fluffici.eu/api/order?orderId=${order?.order_id}")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
@@ -201,13 +185,12 @@ suspend fun getProducts(order: Order): List<Product> = withContext(Dispatchers.I
     return@withContext result
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-suspend fun getTransactions(order: Order): List<Transaction> = withContext(Dispatchers.IO) {
+suspend fun getTransactions(order: Order?): List<Transaction> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Transaction>()
 
     val client = OkHttpClient()
     val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order?orderId=${order.order_id}")
+        .url("https://api.fluffici.eu/api/order?orderId=${order?.order_id}")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
         .get()
         .build()
@@ -223,7 +206,7 @@ suspend fun getTransactions(order: Order): List<Transaction> = withContext(Dispa
 
                 result.add(
                     Transaction(
-                        order.order_id,
+                        order?.order_id,
                         payment.get("status").asString,
                         payment.get("transaction_id").asString,
                         payment.get("provider").asString,

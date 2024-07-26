@@ -20,7 +20,6 @@ import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.components.Dialog
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Dialog(
     encodedData: String,

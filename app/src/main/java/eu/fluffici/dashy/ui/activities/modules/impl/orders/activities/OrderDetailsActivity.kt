@@ -1,37 +1,15 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.activities
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import eu.fluffici.calendar.shared.makeCancellation
 import eu.fluffici.calendar.shared.makeRefund
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.OrderCancellationEvent
 import eu.fluffici.dashy.events.module.OrderRefundEvent
-import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
-import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderDetailsLayout
 import eu.fluffici.dashy.utils.newIntent
@@ -48,23 +26,23 @@ class OrderDetailsActivity : Module(
 ) {
     private val mBus = EventBus.getDefault()
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
 
-        val order = intent.extras?.getParcelable<Order>("ORDER")
+        val order = intent.getStringExtra("orderId")
+
         if (order !== null) {
             setContent {
                 (if (this.intent.hasExtra("refundMessage")) { this.intent.getStringExtra("refundMessage") } else {
                     "Unable to determine request state."
                 })?.let {
                     OrderDetailsLayout(
-                        order = order,
+                        orderId = order,
                         context = this.applicationContext,
                         onPaymentClick = {
                             val intent = Intent(this, OrderPayment::class.java).apply {
-                                putExtra("ORDER", order)
+                                putExtra("orderId", order)
                             }
                             this.startActivity(intent)
                         },
@@ -110,20 +88,19 @@ class OrderDetailsActivity : Module(
         this.mBus.unregister(this)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onOrderCancellation(event: OrderCancellationEvent) {
-        val result = makeCancellation(orderId = event.order.order_id)
+        val result = makeCancellation(orderId = event.order)
         if (result.first != null) {
             val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                putExtra("ORDER", event.order)
+                putExtra("orderId", event.order)
                 putExtra("cancelFailed", true)
                 putExtra("refundMessage", result.first)
             }
             this.startActivity(intent)
         } else {
             val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                putExtra("ORDER", event.order)
+                putExtra("orderId", event.order)
                 putExtra("cancelSuccess", true)
                 putExtra("refundMessage", result.second)
             }
@@ -131,14 +108,13 @@ class OrderDetailsActivity : Module(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onOrderRefund(event: OrderRefundEvent) {
-        val result = makeRefund(orderId = event.order.order_id)
+        val result = makeRefund(orderId = event.order)
 
         if (result.first == null && result.second == null) {
             val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                putExtra("ORDER", event.order)
+                putExtra("orderId", event.order)
                 putExtra("refundFailed", true)
                 putExtra("refundMessage", "Unable to contact Fluffici's servers.")
             }
@@ -146,7 +122,7 @@ class OrderDetailsActivity : Module(
         } else {
             if (result.first != null) {
                 val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order)
                     putExtra("refundFailed", true)
                     putExtra("refundMessage", result.first)
                 }
@@ -154,7 +130,7 @@ class OrderDetailsActivity : Module(
             }
             if (result.second != null) {
                 val intent = Intent(applicationContext, OrderDetailsActivity::class.java).apply {
-                    putExtra("ORDER", event.order)
+                    putExtra("orderId", event.order)
                     putExtra("refundSuccess", true)
                     putExtra("refundMessage", result.second)
                 }

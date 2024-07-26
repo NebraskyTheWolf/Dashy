@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.PermissionCheckEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
+import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 
@@ -14,7 +15,7 @@ abstract class Module(
     private val isRestricted: Boolean = false,
     private val icon: Int = R.drawable.face_id_error_svg,
     private val string: Int = R.string._000_000,
-    ) : AppCompatActivity() {
+    ) : PDAAppCompatActivity() {
 
     private val eventBus: EventBus = EventBus.getDefault()
 

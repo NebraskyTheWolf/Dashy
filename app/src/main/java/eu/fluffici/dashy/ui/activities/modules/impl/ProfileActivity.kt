@@ -25,14 +25,12 @@ class ProfileActivity : Module(
                 .load("https://ui-avatars.com/api/?name=${Storage.getUser(applicationContext).username}&background=0D8ABC&color=fff")
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
-                .error(com.saadahmedsoft.popupdialog.R.raw.failed)
                 .into(avatar);
         } else {
             Glide.with(this@ProfileActivity)
                 .load("https://autumn.fluffici.eu/avatars/${Storage.getUser(applicationContext).avatarId}")
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
-                .error(com.saadahmedsoft.popupdialog.R.raw.failed)
                 .into(avatar);
         }
 

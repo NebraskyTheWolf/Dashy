@@ -1,8 +1,6 @@
 package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,28 +18,24 @@ import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.fluffici.calendar.shared.fetchOrder
 import eu.fluffici.calendar.shared.getProducts
 import eu.fluffici.calendar.shared.getTransactions
 import eu.fluffici.dashy.R
-import eu.fluffici.dashy.entities.Order
-import eu.fluffici.dashy.entities.Product
-import eu.fluffici.dashy.entities.Transaction
-import eu.fluffici.dashy.entities.hasDisputed
-import eu.fluffici.dashy.entities.hasPaid
-import eu.fluffici.dashy.entities.hasRefund
+import eu.fluffici.dashy.entities.*
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OrderDetailsLayout(
-    order: Order,
+    orderId: String,
     context: Context,
     onPaymentClick: () -> Unit = {},
     onCancelClick: () -> Unit = {},
@@ -59,13 +53,17 @@ fun OrderDetailsLayout(
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
+    val orders = remember { mutableStateOf<Order?>(null) }
     val products = remember { mutableStateOf(listOf<Product>()) }
     val transactions = remember { mutableStateOf(listOf<Transaction>()) }
 
     LaunchedEffect(key1 = true) {
         try {
-            products.value = getProducts(order = order)
-            transactions.value = getTransactions(order = order)
+            orders.value = fetchOrder(orderId = orderId)
+            if (orders.value == null)
+                errorMessage.value = "This order does not exists."
+            products.value = getProducts(order = orders.value)
+            transactions.value = getTransactions(order = orders.value)
         } catch (e: Exception) {
             errorMessage.value = e.message
         } finally {
@@ -74,9 +72,11 @@ fun OrderDetailsLayout(
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black), contentAlignment = Alignment.Center
+        ) {
             LoadingIndicator()
         }
     } else {
@@ -89,13 +89,19 @@ fun OrderDetailsLayout(
                 }
             )
         } ?: run {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(5.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .padding(5.dp)
+            ) {
 
                 Column {
-                    DashboardTitle(text = "Order from ${order.first_name}", icon = R.drawable.square_arrow_left_filled_svg, true) {
+                    DashboardTitle(
+                        text = "Order from ${orders.value?.first_name}",
+                        icon = R.drawable.square_arrow_left_filled_svg,
+                        isOnBeginning = true
+                    ) {
                         onParentClick()
                     }
 
@@ -135,7 +141,7 @@ fun OrderDetailsLayout(
 
                         when (selectedTabIndex) {
                             0 -> {
-                                OrderDetails(context = context, order = order)
+                                OrderDetails(context = context, order = orders.value)
 
                                 if (hasDisputed(transactions.value)) {
                                     DisputeAlertCard(
@@ -200,7 +206,6 @@ fun OrderDetailsLayout(
     }
 }
 
-
 @Composable
 fun ActionButton(
     onPaymentClick: () -> Unit = {},
@@ -208,6 +213,9 @@ fun ActionButton(
     onRefundClick: () -> Unit = {},
     transaction: List<Transaction>
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -222,8 +230,8 @@ fun ActionButton(
                             onClick = onRefundClick,
                             modifier = Modifier
                                 .padding(8.dp)
-                                .width(110.dp)
-                                .height(40.dp),
+                                .width(if (screenWidth < 400.dp) 90.dp else 110.dp)
+                                .height(if (screenWidth < 400.dp) 35.dp else 40.dp),
                             backgroundColor = Color.White,
                             shape = MaterialTheme.shapes.small.copy(CornerSize(percent = 10))
                         ) {
@@ -237,7 +245,7 @@ fun ActionButton(
                                 Text(
                                     text = "Refund",
                                     color = Color.Black,
-                                    fontSize = 14.sp,
+                                    fontSize = if (screenWidth < 400.dp) 12.sp else 14.sp,
                                     fontFamily = appFontFamily
 
                                 )
@@ -248,10 +256,10 @@ fun ActionButton(
                             onClick = {},
                             modifier = Modifier
                                 .padding(8.dp)
-                                .width(110.dp)
-                                .height(40.dp),
+                                .width(if (screenWidth < 400.dp) 90.dp else 110.dp)
+                                .height(if (screenWidth < 400.dp) 35.dp else 40.dp),
                             backgroundColor = Color.Transparent,
-                            ) {
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.lock_svg),
@@ -266,8 +274,8 @@ fun ActionButton(
                         onClick = onPaymentClick,
                         modifier = Modifier
                             .padding(8.dp)
-                            .width(110.dp)
-                            .height(40.dp),
+                            .width(if (screenWidth < 400.dp) 90.dp else 110.dp)
+                            .height(if (screenWidth < 400.dp) 35.dp else 40.dp),
                         backgroundColor = Color.White,
                         shape = MaterialTheme.shapes.small.copy(CornerSize(percent = 10))
                     ) {
@@ -281,7 +289,7 @@ fun ActionButton(
                             Text(
                                 text = "Payment",
                                 color = Color.Black,
-                                fontSize = 14.sp,
+                                fontSize = if (screenWidth < 400.dp) 12.sp else 14.sp,
                                 fontFamily = appFontFamily
                             )
                         }
@@ -291,8 +299,8 @@ fun ActionButton(
                         onClick = onCancelClick,
                         modifier = Modifier
                             .padding(8.dp)
-                            .width(110.dp)
-                            .height(40.dp),
+                            .width(if (screenWidth < 400.dp) 90.dp else 110.dp)
+                            .height(if (screenWidth < 400.dp) 35.dp else 40.dp),
                         backgroundColor = Color.White,
                         shape = MaterialTheme.shapes.small.copy(CornerSize(percent = 10))
                     ) {
@@ -306,7 +314,7 @@ fun ActionButton(
                             Text(
                                 text = "Cancel Order",
                                 color = Color.Black,
-                                fontSize = 11.sp,
+                                fontSize = if (screenWidth < 400.dp) 10.sp else 11.sp,
                                 fontFamily = appFontFamily
                             )
                         }
