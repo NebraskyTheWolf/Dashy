@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
+import eu.fluffici.dashy.entities.ProductBody
+import eu.fluffici.dashy.entities.ProductInventory
 import eu.fluffici.dashy.entities.Transaction
 import eu.fluffici.dashy.entities.Voucher
 import eu.fluffici.dashy.ui.activities.modules.impl.scanner.isBase64
@@ -14,6 +16,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import org.bouncycastle.util.encoders.Base64
 
 suspend fun fetchOrder(orderId: String): Order? = withContext(Dispatchers.IO)  {
@@ -73,6 +76,77 @@ suspend fun fetchVoucher(encodedData: String?): Pair<eu.fluffici.dashy.entities.
         "UNABLE_TO_CONNECT",
         "Unable to contact Fluffici servers.",
     ), null)
+}
+
+suspend fun fetchProduct(upcCode: String?): Pair<eu.fluffici.dashy.entities.Error?, ProductBody?> = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/product/upc?id=${upcCode}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+
+    val response = client.newCall(request.build()).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (!data.get("status").asBoolean) {
+            return@withContext Pair(eu.fluffici.dashy.entities.Error(
+                data.get("status").asBoolean,
+                "INVALID_PRODUCT_ID",
+                data.get("message").asString,
+            ), null)
+        }
+
+        return@withContext Pair(null, Json.decodeFromString<ProductBody>(data.get("data").asJsonObject.toString()))
+    }
+
+    return@withContext Pair(eu.fluffici.dashy.entities.Error(
+        false,
+        "UNABLE_TO_CONNECT",
+        "Unable to contact Fluffici servers.",
+    ), null)
+}
+
+suspend fun fetchAllProducts(upcCode: String?): MutableList<ProductBody> = withContext(Dispatchers.IO) {
+    val result = mutableListOf<ProductBody>()
+
+    val client = OkHttpClient()
+
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/product/upc?id=${upcCode}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+
+    val response = client.newCall(request.build()).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+        if (data.get("data").isJsonArray) {
+            data.get("data").asJsonArray.forEach {
+                result.add(Json.decodeFromString<ProductBody>(it.asJsonObject.toString()))
+            }
+        }
+    }
+
+    return@withContext result
+}
+
+suspend fun isProductExist(upcCode: String?): Boolean = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/product/upc?id=${upcCode}")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+
+    val response = client.newCall(request.build()).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        return@withContext data.get("status").asBoolean
+    }
+
+    return@withContext false
 }
 
 

@@ -27,6 +27,7 @@ import eu.fluffici.calendar.shared.User
 import eu.fluffici.calendar.shared.generateUsers
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.PartialUser
+import eu.fluffici.dashy.entities.ProductBody
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
@@ -195,6 +196,18 @@ fun NetworkImage(user: PartialUser, modifier: Modifier = Modifier) {
             contentDescription = null,
             modifier = modifier.size(56.dp),
             contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@Composable
+fun NetworkImage(product: ProductBody, modifier: Modifier = Modifier) {
+    if (product.productIcon !== null) {
+        AsyncImage(
+            model = "https://autumn.fluffici.eu/attachments/${product.productIcon}",
+            contentDescription = null,
+            modifier = modifier.size(200.dp),
+            contentScale = ContentScale.Fit,
         )
     }
 }

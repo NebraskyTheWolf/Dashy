@@ -12,6 +12,7 @@ import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderDetailsLayout
+import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe

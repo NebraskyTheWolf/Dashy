@@ -9,29 +9,29 @@ import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
-import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductUI
-import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductDetailsUI
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-class ProductActivity : Module(
+class ProductDetailsActivity : Module(
     "products",
-    "platform.shop.products.write",
-    true,
-    R.drawable.apps_filled_svg,
-    R.string.products_one
+    "platform.shop.products.read",
+    false,
+    R.drawable.shopping_bag_check_svg,
+    R.string.products_two
 ) {
 
     private val mBus = EventBus.getDefault()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
 
         setContent {
-            ProductUI(eventBus = this.mBus, onParentClick = {
+            ProductDetailsUI(productId = this.intent.getStringExtra("productId")!!, eventBus = this.mBus, onParentClick = {
                 this.newIntent(Intent(applicationContext, MainActivity::class.java))
             })
         }
@@ -48,16 +48,6 @@ class ProductActivity : Module(
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onCardClick(event: CardClickEvent) {
-        when (event.viewId) {
-            "scan_product" -> {
-                val intent = Intent(applicationContext, ScannerActivity::class.java).apply {
-                    putExtra("isProduct", true)
-                }
-                this.startActivity(intent)
-            }
-            "inventory" -> {
-                this.startActivity(Intent(applicationContext, ProductInventoryActivity::class.java))
-            }
-        }
+        when (event.viewId) { }
     }
 }

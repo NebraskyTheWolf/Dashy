@@ -1,8 +1,10 @@
 package eu.fluffici.dashy.ui.activities.common
 
 import android.content.Context
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
@@ -93,17 +96,26 @@ data class DashboardUICard(
     val name: String,
     val text: Int,
     val icon: Int,
+    val isPDA: Boolean = false
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DashboardCard(module: DashboardUICard, eventBus: EventBus) {
+    if (module.isPDA && !LocalContext.current.getDeviceInfo().isPDADevice)
+        return
     Card(shape = RoundedCornerShape(12.dp), backgroundColor = Gray,
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth()
-            .clickable {
-                eventBus.post(CardClickEvent(module.name))
-            }
+            .combinedClickable(
+                onClick = {
+                    eventBus.post(CardClickEvent(module.name))
+                },
+                onLongClick = {
+                    eventBus.post(CardClickEvent(module.name + "_long_click"))
+                }
+            )
             .height(160.dp)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -91,6 +91,7 @@ import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.otp.activities.OTPActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
 import eu.fluffici.dashy.ui.activities.settings.PrivacySettings
@@ -121,6 +122,14 @@ class MainActivity : PDAAppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         this.mBus.register(this)
+
+        if (Storage.isOrderFocusMode) {
+            val intent = Intent(this, ScannerActivity::class.java).apply {
+                putExtra("isOrder", true)
+            }
+            this.startActivity(intent)
+            return
+        }
 
         if (!applicationContext.getDeviceInfo().isPDADevice) {
             if (this.intent.hasExtra("isAuthentified")) {

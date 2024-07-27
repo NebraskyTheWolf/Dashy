@@ -1,5 +1,7 @@
 package eu.fluffici.dashy.ui.activities.common
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,10 +24,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.utils.Storage
 
 @Composable
-fun ScannerInstScreen() {
+fun ScannerInstScreen(context: Context) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,12 +60,63 @@ fun ScannerInstScreen() {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Please scan the DataMatrix to continue",
-                style = MaterialTheme.typography.body2.copy(color = Color.Black),
-                textAlign = TextAlign.Start,
-                color = Color.White,
-            )
+            if (Storage.isOrderFocusMode) {
+                Text(
+                    text = "Order focus mode enabled, Please scan the order QRCode",
+                    style = MaterialTheme.typography.h6.copy(color = Color.Black),
+                    textAlign = TextAlign.Start,
+                    fontSize = 12.sp,
+                    color = Color.White,
+                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter // Aligning content to bottom end
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            FloatingActionButton(
+                                onClick = {
+                                    Storage.isOrderFocusMode = false
+                                },
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .width(110.dp)
+                                    .height(40.dp),
+                                backgroundColor = Color.White,
+                                shape = MaterialTheme.shapes.small.copy(CornerSize(percent = 10))
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.x_svg),
+                                        contentDescription = "Quit",
+                                        tint = Color.Red
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Quit",
+                                        color = Color.Black,
+                                        fontSize = 14.sp,
+                                        fontFamily = appFontFamily
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    text = "Please scan the DataMatrix to continue",
+                    style = MaterialTheme.typography.body2.copy(color = Color.Black),
+                    textAlign = TextAlign.Start,
+                    color = Color.White,
+                )
+            }
         }
     }
 }

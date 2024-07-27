@@ -18,7 +18,6 @@ class UsersActivity : Module(
 ) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.users_activity)
         this.performCheck()
 
         setContent {

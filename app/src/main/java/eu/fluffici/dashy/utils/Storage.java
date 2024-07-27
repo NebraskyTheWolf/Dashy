@@ -17,6 +17,7 @@ public class Storage {
 
     public static boolean isAuthentified = false;
     public static boolean isLoaded = false;
+    public static boolean isOrderFocusMode = false;
 
     public static void setAccessToken(@NonNull Context context, String token) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("PDACrendentials", Context.MODE_PRIVATE);

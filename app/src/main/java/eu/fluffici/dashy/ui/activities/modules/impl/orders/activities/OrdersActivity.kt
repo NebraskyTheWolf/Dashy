@@ -13,6 +13,7 @@ import eu.fluffici.dashy.ui.activities.common.RequestPermissionScreen
 import eu.fluffici.dashy.ui.activities.modules.Module
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts.OrderUI
 import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
+import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -38,9 +39,6 @@ class OrdersActivity : Module(
                 permission = Manifest.permission.CAMERA,
                 onChecking = {
                     SplashScreen(mBus = this.mBus, isCycling = true)
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "Checking permissions registries.", Toast.LENGTH_SHORT).show()
-                    }
                 },
                 onGranted = {
                     OrderUI(eventBus = this.mBus, onParentClick = {
@@ -68,6 +66,17 @@ class OrdersActivity : Module(
                     putExtra("isOrder", true)
                 }
                 this.startActivity(intent)
+            }
+            "scan_order_long_click" -> {
+                Storage.isOrderFocusMode = true
+                val intent = Intent(this, ScannerActivity::class.java).apply {
+                    putExtra("isOrder", true)
+                }
+                this.startActivity(intent)
+
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "You enabled the Focus mode.", Toast.LENGTH_SHORT).show()
+                }
             }
             "voucher_info" -> {
                 val intent = Intent(this, ScannerActivity::class.java).apply {

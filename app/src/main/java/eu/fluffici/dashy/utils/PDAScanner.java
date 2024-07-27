@@ -45,6 +45,7 @@ public class PDAScanner {
     }
 
     public void onDestroy() {
-        mSupporterManager.recycle();
+        if (mSupporterManager != null)
+            mSupporterManager.recycle();
     }
 }

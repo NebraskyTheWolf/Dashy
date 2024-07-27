@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.view.WindowManager
-import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -19,18 +18,20 @@ import eu.fluffici.dashy.events.auth.DeviceAuthorization
 import eu.fluffici.dashy.events.auth.Unauthorized
 import eu.fluffici.dashy.events.common.NetworkPing
 import eu.fluffici.dashy.ui.activities.MainActivity
+import eu.fluffici.dashy.ui.activities.auth.LoginActivity
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.modules.ModuleManager
 import eu.fluffici.dashy.utils.RootCheck
 import eu.fluffici.dashy.utils.Storage
 import eu.fluffici.dashy.utils.newIntent
-import eu.fluffici.security.DeviceInfo
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 open class PDAApplication : MultiDexApplication() {
 
     private lateinit var rootBeer: RootBeer
@@ -50,20 +51,6 @@ open class PDAApplication : MultiDexApplication() {
         this.magiskCheck = RootCheck()
         this.magiskCheck.onStart(applicationContext)
 
-        if (!Build.MODEL.equals("Android SDK built for x86"))
-            if (this.rootBeer.isRooted
-                || this.rootBeer.isRootedWithBusyBoxCheck
-                || this.magiskCheck.isMagiskPresent
-                || this.magiskCheck.isAlternateRoot) {
-
-                val i = Intent(this@PDAApplication, ErrorScreen::class.java)
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                i.putExtra("title", "Rooted device.")
-                i.putExtra("description", "Tempered device detected.")
-                newIntent(i)
-
-                return
-            }
 
         // Simple pinger request to detect when the device is offline.
         this.mBus.post(NetworkPing())
@@ -83,6 +70,18 @@ open class PDAApplication : MultiDexApplication() {
         } else {
             if (applicationContext.getDeviceInfo().isPDADevice) {
                 this.mBus.postSticky(DeviceAuthorization(applicationContext.getDeviceInfo().GetDeviceId()))
+            } else {
+                val i = Intent(
+                    applicationContext,
+                    LoginActivity::class.java
+                )
+                i.setFlags(
+                    i.flags
+                            or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            or Intent.FLAG_ACTIVITY_NEW_TASK
+                            or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                )
+                startActivity(i)
             }
         }
 

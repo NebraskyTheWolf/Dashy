@@ -6,12 +6,16 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.window.OnBackInvokedDispatcher;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import dagger.hilt.internal.GeneratedComponent;
 import eu.fluffici.dashy.ui.activities.auth.LoginActivity;
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen;
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity;
 import eu.fluffici.dashy.utils.Storage;
 import eu.fluffici.security.DeviceInfo;
 
@@ -44,5 +48,28 @@ public class PDAAppCompatActivity extends AppCompatActivity {
             );
             startActivity(i);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        if (Storage.isOrderFocusMode) {
+            Intent intent = new Intent(getApplicationContext(), ScannerActivity.class);
+            intent.getExtras().putBoolean("isOrder", true);
+            this.startActivity(intent);
+        }
+    }
+
+    @NonNull
+    @Override
+    public OnBackInvokedDispatcher getOnBackInvokedDispatcher() {
+        if (Storage.isOrderFocusMode) {
+            Intent intent = new Intent(getApplicationContext(), ScannerActivity.class);
+            intent.getExtras().putBoolean("isOrder", true);
+            this.startActivity(intent);
+        }
+
+        return super.getOnBackInvokedDispatcher();
     }
 }

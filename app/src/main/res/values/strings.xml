@@ -14,6 +14,7 @@
     <string name="welcome">Welcome</string>
     <string name="orders">Orders</string>
     <string name="products_one">Products</string>
+    <string name="products_two">Product Details</string>
     <string name="otp_request">OTP Request</string>
     <string name="customer">Tickets</string>
     <string name="products">Calendar</string>

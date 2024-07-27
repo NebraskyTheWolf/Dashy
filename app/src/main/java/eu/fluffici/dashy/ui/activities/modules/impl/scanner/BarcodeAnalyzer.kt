@@ -15,7 +15,7 @@ import org.greenrobot.eventbus.EventBus
 class BarcodeAnalyzer(private val eventBus: EventBus, val intent: Intent) : ImageAnalysis.Analyzer {
 
     private val options = BarcodeScannerOptions.Builder()
-        .setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX, Barcode.FORMAT_UPC_A)
+        .setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX, Barcode.FORMAT_UPC_A, Barcode.FORMAT_EAN_13)
         .enableAllPotentialBarcodes()
         .build()
 

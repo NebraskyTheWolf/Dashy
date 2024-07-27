@@ -4,8 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.plugin.serialization")
-
-
+    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -73,11 +72,19 @@ configurations {
 }
 
 kapt {
-    correctErrorTypes = true
+}
+
+hilt {
+    enableAggregatingTask = true
 }
 
 
 dependencies {
+    // Hilt dependencies
+    implementation("com.google.dagger:hilt-android:2.49")
+    kapt("com.google.dagger:hilt-compiler:2.49")
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -111,7 +118,7 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging:23.4.1")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
 
-    kapt("com.anggrayudi:materialpreference-compiler:1.8")
+    //kapt("com.anggrayudi:materialpreference-compiler:1.8")
     implementation("com.scottyab:rootbeer-lib:0.1.0")
 
     implementation("com.github.topjohnwu.libsu:core:5.0.3")
@@ -126,6 +133,8 @@ dependencies {
     implementation("com.github.AAChartModel:AAChartCore-Kotlin:7.2.1")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
     implementation("com.evrencoskun.library:tableview:0.8.8")
+
+    implementation("com.github.commandiron:WheelPickerCompose:1.1.11")
 
     // Lifecycle
     val roomVersion = "2.3.0"
