@@ -1,6 +1,7 @@
 package eu.fluffici.dashy
 
 import android.content.Context
+import android.widget.Toast
 import eu.fluffici.security.DeviceInfo
 
 fun Context.getDeviceInfo(): DeviceInfo {
@@ -23,4 +24,9 @@ fun Context.isUPCAFormat(input: String): Boolean {
     val calculatedCheckDigit = (10 - (totalSum % 10)) % 10
 
     return checkDigit == calculatedCheckDigit
+}
+
+
+fun Context.showToast(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }

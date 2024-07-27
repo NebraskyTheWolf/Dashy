@@ -2,18 +2,16 @@ package eu.fluffici.dashy.ui.activities.modules.impl.orders.layouts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.fluffici.calendar.shared.fetchVoucher
 import eu.fluffici.dashy.R
@@ -28,8 +26,6 @@ fun VoucherInformationScreen(
     unrecognised: (error: Error) -> Unit = {},
     onParentClick: () -> Unit = {}
 ) {
-
-
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val voucher = remember { mutableStateOf<Pair<Error?, Voucher?>>(Pair(null, null)) }
@@ -40,11 +36,8 @@ fun VoucherInformationScreen(
         } catch (e: Exception) {
             errorMessage.value = e.message
         } finally {
-            if (voucher.value.second != null) {
-                isLoading.value = false
-            } else {
-                unrecognised(voucher.value.first!!)
-            }
+            isLoading.value = false
+            voucher.value.first?.let { unrecognised(it) }
         }
     }
 
@@ -55,20 +48,29 @@ fun VoucherInformationScreen(
     } else {
         errorMessage.value?.let { error ->
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(error)
+                Text(text = error, style = MaterialTheme.typography.body1, color = MaterialTheme.colors.error)
             }
         } ?: run {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(5.dp)) {
-
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colors.background)
+                    .padding(16.dp)
+            ) {
                 Column {
-                    DashboardTitle(text = "Voucher Information", icon = R.drawable.square_arrow_left_svg, true) {
+                    DashboardTitle(
+                        text = "Voucher Information",
+                        icon = R.drawable.square_arrow_left_svg,
+                        isOnBeginning = true
+                    ) {
                         onParentClick()
                     }
 
-                    VoucherCard(voucher.value.second)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    voucher.value.second?.let {
+                        VoucherCard(it)
+                    }
                 }
             }
         }
@@ -76,39 +78,40 @@ fun VoucherInformationScreen(
 }
 
 @Composable
-fun VoucherCard(voucher: Voucher?) {
+fun VoucherCard(voucher: Voucher) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 8.dp
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        elevation = 8.dp,
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Customer Name: ${voucher?.customer?.first_name}, ${voucher?.customer?.last_name}",
-                style = MaterialTheme.typography.body1
+                text = "Customer Name: ${voucher.customer.first_name} ${voucher.customer.last_name}",
+                style = MaterialTheme.typography.body2,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Amount: ${voucher?.balance} Kč",
-                style = MaterialTheme.typography.body1
+                text = "Amount: ${voucher.balance} Kč",
+                style = MaterialTheme.typography.body2
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Expiration: ${voucher?.expireAt}",
-                style = MaterialTheme.typography.body1
+                text = "Expiration: ${voucher.expireAt}",
+                style = MaterialTheme.typography.body2
             )
 
-            if (voucher?.isRestricted == true) {
+            if (voucher.isRestricted) {
                 VoucherInfo(icon = R.drawable.alert_triangle_svg, title = "Restricted")
             }
 
-            if (voucher?.isExpired == true) {
+            if (voucher.isExpired) {
                 VoucherInfo(icon = R.drawable.clock_exclamation_svg, title = "Expired")
             }
         }
@@ -120,17 +123,18 @@ fun VoucherInfo(
     icon: Int,
     title: String
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = title,
-            tint = Color.Red
+            tint = MaterialTheme.colors.error
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.body1,
-            color = Color.Red
+            style = MaterialTheme.typography.body2,
+            color = MaterialTheme.colors.error,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }

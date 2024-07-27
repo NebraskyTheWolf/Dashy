@@ -48,6 +48,14 @@ class ProductDetailsActivity : Module(
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     fun onCardClick(event: CardClickEvent) {
-        when (event.viewId) { }
+        val split = event.viewId.split("_")
+
+        when(split[0]) {
+            "refresh" -> {
+                this.newIntent(Intent(applicationContext, ProductDetailsActivity::class.java).apply {
+                    putExtra("productId", split[1])
+                })
+            }
+        }
     }
 }

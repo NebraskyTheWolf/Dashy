@@ -16,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.commandiron.wheel_picker_compose.WheelDateTimePicker
 import com.commandiron.wheel_picker_compose.core.TimeFormat
@@ -29,10 +31,17 @@ import eu.fluffici.calendar.shared.akceDateTimeFormatter
 import eu.fluffici.calendar.shared.fetchProduct
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.ProductBody
+import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.showToast
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
+import eu.fluffici.dashy.ui.activities.modules.impl.product.model.CDummyProduct
+import eu.fluffici.dashy.ui.activities.modules.impl.product.model.CreateViewModel
+import eu.fluffici.dashy.ui.activities.modules.impl.product.model.CreateViewModelFactory
+import eu.fluffici.dashy.ui.activities.modules.impl.product.model.DummyCategory
+import eu.fluffici.dashy.ui.activities.modules.impl.product.model.DummyProductSale
 import eu.fluffici.dashy.ui.activities.modules.impl.users.NetworkImage
 import org.greenrobot.eventbus.EventBus
 import java.sql.Timestamp
@@ -51,6 +60,7 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.forLa
 fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () -> Unit = {}) {
     currencyFormat.currency = Currency.getInstance("CZK")
 
+    var showCreateProduct by remember { mutableStateOf(false) }
     var showAddSalesDialog by remember { mutableStateOf(false) }
     var showEditProductDialog by remember { mutableStateOf(false) }
     var showViewBarcodeDialog by remember { mutableStateOf(false) }
@@ -63,9 +73,6 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
     LaunchedEffect(key1 = true) {
         try {
             product.value = fetchProduct(upcCode = productId)
-            if (product.value!!.first != null) {
-                errorMessage.value = product.value!!.first?.message
-            }
         } catch (e: Exception) {
             errorMessage.value = e.message
         } finally {
@@ -83,20 +90,14 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
         }
     } else {
         errorMessage.value?.let { error ->
-            if (error === "Invalid product ID.") {
-
-            } else {
-                ErrorScreen(
-                    title = "Application error",
-                    description = error,
-                    onParentClick = {
-                        onParentClick()
-                    }
-                )
-            }
+            ErrorScreen(
+                title = "Application error",
+                description = error,
+                onParentClick = {
+                    onParentClick()
+                }
+            )
         } ?: run {
-            val displayStatus = if (product.value?.second!!.displayed == 1) "Public" else "Private"
-
             Box(modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
@@ -201,6 +202,8 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                         )
                                     }
 
+                                    val displayStatus = if (product.displayed == 1) "Public" else "Private"
+
                                     Column {
                                         Text(
                                             text = "Status",
@@ -218,14 +221,14 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
 
                                     Column {
                                         Text(
-                                            text = "Views",
+                                            text = "Quantity",
                                             style = MaterialTheme.typography.caption,
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
                                         Text(
                                             text = NumberFormat.getNumberInstance()
-                                                .format(product.views),
+                                                .format(product.quantity),
                                             style = MaterialTheme.typography.body1,
                                             color = Color.Black,
                                             fontFamily = appFontFamily
@@ -362,7 +365,13 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                             }
                         }
                     } else {
-                        errorMessage.value = "The product does not exists"
+                        CreateProductDialog(upcId = productId, onDismiss = { onParentClick() }) {
+                            if (it) {
+                                eventBus.post(CardClickEvent("refresh_${productId}"))
+                            } else {
+                                onParentClick()
+                            }
+                        }
                     }
                 }
             }
@@ -373,6 +382,12 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
+
+    val context = LocalContext.current
+    val createViewModel: CreateViewModel = viewModel(
+        factory = CreateViewModelFactory()
+    )
+
     var discount by remember { mutableStateOf("") }
     var expirationDate by remember { mutableStateOf("") }
 
@@ -415,6 +430,17 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
                     onDismiss()
+                    createViewModel.createSale(DummyProductSale(
+                        product = product,
+                        reduction = discount,
+                        expiration = expirationDate
+                    )).let {
+                        if (it) {
+                            context.showToast("Sales added on ${product.name}")
+                        } else {
+                            context.showToast("Error while adding the sale.")
+                        }
+                    }
                 }) {
                     Text("Apply")
                 }
@@ -425,6 +451,11 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
 
 @Composable
 fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
+    val createViewModel: CreateViewModel = viewModel(
+        factory = CreateViewModelFactory()
+    )
+
+    val context = LocalContext.current
     var name by remember { mutableStateOf(product.name) }
     var description by remember { mutableStateOf(product.description) }
     var price by remember { mutableStateOf(product.price.toString()) }
@@ -488,6 +519,13 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
                     onDismiss()
+                    createViewModel.updateProduct(product = product).let {
+                        if (it) {
+                            context.showToast("Product ${product.name} has been updated.")
+                        } else {
+                            context.showToast("Failed to update ${product.name}")
+                        }
+                    }
                 }) {
                     Text("Save")
                 }
@@ -495,13 +533,29 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
         }
     }
 }
-
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: () -> Unit) {
+fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: (state: Boolean) -> Unit) {
+    val createViewModel: CreateViewModel = viewModel(
+        factory = CreateViewModelFactory()
+    )
+
+    // Category data : id, name
+    val categories by createViewModel.categories.collectAsState()
+    val getErrors by createViewModel.getErrors.collectAsState()
+
+    LaunchedEffect(categories) {}
+    LaunchedEffect(getErrors) {}
+
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("Public") } // Default to "Public"
+    var statusExpanded by remember { mutableStateOf(false) }
+
+    var selectedCategory by remember { mutableStateOf(DummyCategory(0, "Select a category")) }
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     CustomDialog(onDismiss = onDismiss) {
         Column(
@@ -542,12 +596,74 @@ fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: () -> Un
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Status", style = MaterialTheme.typography.caption)
-            TextField(
-                value = status,
-                onValueChange = { status = it },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.body2
-            )
+            ExposedDropdownMenuBox(
+                expanded = statusExpanded,
+                onExpandedChange = { statusExpanded = !statusExpanded }
+            ) {
+                TextField(
+                    value = status,
+                    onValueChange = { },
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { statusExpanded = true },
+                    textStyle = MaterialTheme.typography.body2
+                )
+                ExposedDropdownMenu(
+                    expanded = statusExpanded,
+                    onDismissRequest = { statusExpanded = false }
+                ) {
+                    DropdownMenuItem(onClick = {
+                        status = "Public"
+                        statusExpanded = false
+                    }) {
+                        Text("Public")
+                    }
+                    DropdownMenuItem(onClick = {
+                        status = "Private"
+                        statusExpanded = false
+                    }) {
+                        Text("Private")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Category", style = MaterialTheme.typography.caption)
+            ExposedDropdownMenuBox(
+                expanded = categoryExpanded,
+                onExpandedChange = { categoryExpanded = !categoryExpanded }
+            ) {
+                TextField(
+                    value = selectedCategory.name,
+                    onValueChange = { },
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { categoryExpanded = true },
+                    textStyle = MaterialTheme.typography.body2
+                )
+                ExposedDropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(onClick = {
+                            selectedCategory = category
+                            categoryExpanded = false
+                        }) {
+                            Text(category.name)
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -560,7 +676,22 @@ fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: () -> Un
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
-                    onCreate()
+                    createViewModel.createProduct(CDummyProduct(
+                        upcId,
+                        name,
+                        selectedCategory.id,
+                        description,
+                        price,
+                        status
+                    )).let {
+                        if (it) {
+                            context.showToast("Product $name has been created.")
+                        } else {
+                            context.showToast("Failed to create $name.")
+                        }
+
+                        onCreate(it)
+                    }
                 }) {
                     Text("Create")
                 }
@@ -568,7 +699,6 @@ fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: () -> Un
         }
     }
 }
-
 
 @Composable
 fun ViewBarcodeDialog(onDismiss: () -> Unit, product: ProductBody) {
@@ -580,7 +710,10 @@ fun ViewBarcodeDialog(onDismiss: () -> Unit, product: ProductBody) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            BarcodeComposable(upcCode = product.id)
+            if (product.hasUpc == 1)
+                BarcodeComposableCustom(upcCode = product.upcCode!!)
+            else
+                BarcodeComposable(upcCode = product.id)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -598,6 +731,11 @@ fun ViewBarcodeDialog(onDismiss: () -> Unit, product: ProductBody) {
 
 @Composable
 fun DeleteConfirmationDialog(onDismiss: () -> Unit, product: ProductBody) {
+    val context = LocalContext.current
+    val createViewModel: CreateViewModel = viewModel(
+        factory = CreateViewModelFactory()
+    )
+
     CustomDialog(onDismiss = onDismiss) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -620,6 +758,13 @@ fun DeleteConfirmationDialog(onDismiss: () -> Unit, product: ProductBody) {
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
                     onDismiss()
+                    createViewModel.deleteProduct(product).let {
+                        if (it) {
+                            context.showToast("${product.name} has been deleted.")
+                        } else {
+                            context.showToast("Failed to delete ${product.name}.")
+                        }
+                    }
                 }) {
                     Text("Delete", fontFamily = appFontFamily)
                 }
@@ -697,6 +842,21 @@ fun BarcodeComposable(upcCode: Int) {
     ) {
         AsyncImage(
             model = "https://api.fluffici.eu/api/product/ean?productId=${generateUPCA(upcCode)}",
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(400.dp)
+        )
+    }
+}
+
+@Composable
+fun BarcodeComposableCustom(upcCode: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = "https://api.fluffici.eu/api/product/ean?productId=${upcCode}",
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier.size(400.dp)
