@@ -17,7 +17,7 @@ data class Product(
 @Serializable
 data class ProductBody(
     val id: Int,
-    val price: Int,
+    val price: Double,
     val views: Int,
     val name: String,
     @SerialName("category_id")
@@ -54,7 +54,7 @@ data class ProductBody(
         data.addProperty("name", name)
         data.addProperty("description", description)
         data.addProperty("category_id", categoryId)
-        data.addProperty("price", price.toDouble())
+        data.addProperty("price", price)
         data.addProperty("displayed", (displayed == 1))
 
         return data.toString().toRequestBody("application/json".toMediaTypeOrNull())

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.commandiron.wheel_picker_compose.WheelDateTimePicker
@@ -32,6 +33,7 @@ import eu.fluffici.calendar.shared.fetchProduct
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.ProductBody
 import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.getDeviceInfo
 import eu.fluffici.dashy.showToast
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
@@ -60,6 +62,7 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.forLa
 fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () -> Unit = {}) {
     currencyFormat.currency = Currency.getInstance("CZK")
 
+    val context = LocalContext.current
     var showCreateProduct by remember { mutableStateOf(false) }
     var showAddSalesDialog by remember { mutableStateOf(false) }
     var showEditProductDialog by remember { mutableStateOf(false) }
@@ -98,31 +101,40 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                 }
             )
         } ?: run {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(5.dp)) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .padding(5.dp)
+            ) {
+                val maxWidth = maxWidth
+                val isCompact = maxWidth < 600.dp
 
                 Column {
-                    DashboardTitle(text = "Product Management", icon = R.drawable.square_arrow_left_filled_svg, true) {
-                        onParentClick()
-                    }
+                   if (!context.getDeviceInfo().isPDADevice) {
+                       DashboardTitle(
+                           text = "Product Management",
+                           icon = R.drawable.square_arrow_left_filled_svg,
+                           isOnBeginning = true,
+                           isCompact = isCompact
+                       ) {
+                           onParentClick()
+                       }
 
-                    Spacer(modifier = Modifier
-                        .height(20.dp)
-                        .background(color = Color.White))
+                       Spacer(modifier = Modifier.height(20.dp).background(color = Color.White))
+                   }
 
                     if (product.value?.second != null) {
                         val product: ProductBody = product.value?.second!!
 
                         if (showAddSalesDialog)
-                            AddSalesDialog(onDismiss = { showAddSalesDialog = false }, product = product)
+                            AddSalesDialog(onDismiss = { eventBus.post(CardClickEvent("refresh_${productId}")) }, product = product)
                         if (showEditProductDialog)
-                            EditProductDialog(onDismiss = { showEditProductDialog = false }, product = product)
+                            EditProductDialog(onDismiss = { eventBus.post(CardClickEvent("refresh_${productId}")) }, product = product)
                         if (showViewBarcodeDialog)
                             ViewBarcodeDialog(onDismiss = { showViewBarcodeDialog = false }, product = product)
                         if (showDeleteConfirmationDialog)
-                            DeleteConfirmationDialog(onDismiss = { showDeleteConfirmationDialog = false }, product = product)
+                            DeleteConfirmationDialog(onDismiss = { onParentClick() }, product = product)
 
                         Card(
                             shape = RoundedCornerShape(10.dp),
@@ -166,7 +178,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
 
                                 Text(
                                     text = product.name,
-                                    style = MaterialTheme.typography.h6,
+                                    style = MaterialTheme.typography.h6.copy(fontSize = if (isCompact) 16.sp else 20.sp),
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black,
                                     fontFamily = appFontFamily
@@ -176,7 +188,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
 
                                 Text(
                                     text = product.description,
-                                    style = MaterialTheme.typography.body1,
+                                    style = MaterialTheme.typography.body1.copy(fontSize = if (isCompact) 14.sp else 16.sp),
                                     color = Color.Gray,
                                     fontFamily = appFontFamily
                                 )
@@ -190,13 +202,13 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                     Column {
                                         Text(
                                             text = "Price",
-                                            style = MaterialTheme.typography.caption,
+                                            style = MaterialTheme.typography.caption.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
                                         Text(
                                             text = currencyFormat.format(product.price),
-                                            style = MaterialTheme.typography.body1,
+                                            style = MaterialTheme.typography.body1.copy(fontSize = if (isCompact) 14.sp else 16.sp),
                                             color = Color.Black,
                                             fontFamily = appFontFamily
                                         )
@@ -207,13 +219,13 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                     Column {
                                         Text(
                                             text = "Status",
-                                            style = MaterialTheme.typography.caption,
+                                            style = MaterialTheme.typography.caption.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
                                         Text(
                                             text = displayStatus,
-                                            style = MaterialTheme.typography.body1,
+                                            style = MaterialTheme.typography.body1.copy(fontSize = if (isCompact) 14.sp else 16.sp),
                                             color = if (product.displayed == 1) Color.Green else Color.Red,
                                             fontFamily = appFontFamily
                                         )
@@ -222,14 +234,14 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                     Column {
                                         Text(
                                             text = "Quantity",
-                                            style = MaterialTheme.typography.caption,
+                                            style = MaterialTheme.typography.caption.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
                                         Text(
                                             text = NumberFormat.getNumberInstance()
                                                 .format(product.quantity),
-                                            style = MaterialTheme.typography.body1,
+                                            style = MaterialTheme.typography.body1.copy(fontSize = if (isCompact) 14.sp else 16.sp),
                                             color = Color.Black,
                                             fontFamily = appFontFamily
                                         )
@@ -245,7 +257,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                     Column {
                                         Text(
                                             text = "Created At",
-                                            style = MaterialTheme.typography.caption,
+                                            style = MaterialTheme.typography.caption.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
@@ -258,7 +270,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                                     ).replace(".000000Z", "")
                                                 )
                                             ).toString(),
-                                            style = MaterialTheme.typography.body2,
+                                            style = MaterialTheme.typography.body2.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Black,
                                             fontFamily = appFontFamily
                                         )
@@ -267,7 +279,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                     Column {
                                         Text(
                                             text = "Updated At",
-                                            style = MaterialTheme.typography.caption,
+                                            style = MaterialTheme.typography.caption.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Gray,
                                             fontFamily = appFontFamily
                                         )
@@ -280,7 +292,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                                                     ).replace(".000000Z", "")
                                                 )
                                             ).toString(),
-                                            style = MaterialTheme.typography.body2,
+                                            style = MaterialTheme.typography.body2.copy(fontSize = if (isCompact) 12.sp else 14.sp),
                                             color = Color.Black,
                                             fontFamily = appFontFamily
                                         )
@@ -366,11 +378,7 @@ fun ProductDetailsUI(productId: String, eventBus: EventBus, onParentClick: () ->
                         }
                     } else {
                         CreateProductDialog(upcId = productId, onDismiss = { onParentClick() }) {
-                            if (it) {
-                                eventBus.post(CardClickEvent("refresh_${productId}"))
-                            } else {
-                                onParentClick()
-                            }
+                            eventBus.post(CardClickEvent("refresh_${productId}"))
                         }
                     }
                 }
@@ -435,11 +443,7 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
                         reduction = discount,
                         expiration = expirationDate
                     )).let {
-                        if (it) {
-                            context.showToast("Sales added on ${product.name}")
-                        } else {
-                            context.showToast("Error while adding the sale.")
-                        }
+                        context.showToast("Sales added on ${product.name}")
                     }
                 }) {
                     Text("Apply")
@@ -520,11 +524,7 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
                 TextButton(onClick = {
                     onDismiss()
                     createViewModel.updateProduct(product = product).let {
-                        if (it) {
-                            context.showToast("Product ${product.name} has been updated.")
-                        } else {
-                            context.showToast("Failed to update ${product.name}")
-                        }
+                        context.showToast("Product ${product.name} has been updated.")
                     }
                 }) {
                     Text("Save")
@@ -533,9 +533,10 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
         }
     }
 }
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: (state: Boolean) -> Unit) {
+fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: () -> Unit) {
     val createViewModel: CreateViewModel = viewModel(
         factory = CreateViewModelFactory()
     )
@@ -684,14 +685,10 @@ fun CreateProductDialog(upcId: String, onDismiss: () -> Unit, onCreate: (state: 
                         price,
                         status
                     )).let {
-                        if (it) {
-                            context.showToast("Product $name has been created.")
-                        } else {
-                            context.showToast("Failed to create $name.")
-                        }
-
-                        onCreate(it)
+                        context.showToast("Product $name has been created.")
                     }
+
+                    onCreate()
                 }) {
                     Text("Create")
                 }
@@ -757,14 +754,10 @@ fun DeleteConfirmationDialog(onDismiss: () -> Unit, product: ProductBody) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
-                    onDismiss()
                     createViewModel.deleteProduct(product).let {
-                        if (it) {
-                            context.showToast("${product.name} has been deleted.")
-                        } else {
-                            context.showToast("Failed to delete ${product.name}.")
-                        }
+                        context.showToast("${product.name} has been deleted.")
                     }
+                    onDismiss()
                 }) {
                     Text("Delete", fontFamily = appFontFamily)
                 }
@@ -906,4 +899,3 @@ fun generateUPCA(id: Int): String {
 
     return upca
 }
-

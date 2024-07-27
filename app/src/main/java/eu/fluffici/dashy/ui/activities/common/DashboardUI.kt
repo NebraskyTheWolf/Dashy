@@ -137,10 +137,11 @@ fun DashboardCard(module: DashboardUICard, eventBus: EventBus) {
 }
 
 @Composable
-fun DashboardTitle(text: String, icon: Int, isOnBeginning: Boolean = false, onClick: () -> Unit) {
-    Row(modifier = Modifier
-        .clickable(onClick = onClick)
-        .fillMaxWidth(),
+fun DashboardTitle(text: String, icon: Int, isOnBeginning: Boolean = false, isCompact: Boolean = false, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (isOnBeginning) {
@@ -148,28 +149,46 @@ fun DashboardTitle(text: String, icon: Int, isOnBeginning: Boolean = false, onCl
                 painter = painterResource(id = icon),
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+                    .padding(
+                        start = if (isCompact) 4.dp else 8.dp,
+                        top = if (isCompact) 4.dp else 8.dp,
+                        bottom = if (isCompact) 4.dp else 8.dp
+                    )
             )
             Text(
                 text = text,
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = if (isCompact) 14.sp else 16.sp,
                 fontFamily = appFontFamily,
-                modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 2.dp)
+                modifier = Modifier.padding(
+                    start = if (isCompact) 4.dp else 8.dp,
+                    top = if (isCompact) 4.dp else 8.dp,
+                    bottom = if (isCompact) 4.dp else 8.dp,
+                    end = if (isCompact) 1.dp else 2.dp
+                )
             )
         } else {
             Text(
                 text = text,
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = if (isCompact) 14.sp else 16.sp,
                 fontFamily = appFontFamily,
-                modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 2.dp)
+                modifier = Modifier.padding(
+                    start = if (isCompact) 4.dp else 8.dp,
+                    top = if (isCompact) 4.dp else 8.dp,
+                    bottom = if (isCompact) 4.dp else 8.dp,
+                    end = if (isCompact) 1.dp else 2.dp
+                )
             )
             Image(
                 painter = painterResource(id = icon),
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+                    .padding(
+                        start = if (isCompact) 4.dp else 8.dp,
+                        top = if (isCompact) 4.dp else 8.dp,
+                        bottom = if (isCompact) 4.dp else 8.dp
+                    )
             )
         }
     }

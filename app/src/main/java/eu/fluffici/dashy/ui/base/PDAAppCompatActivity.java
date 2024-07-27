@@ -60,16 +60,4 @@ public class PDAAppCompatActivity extends AppCompatActivity {
             this.startActivity(intent);
         }
     }
-
-    @NonNull
-    @Override
-    public OnBackInvokedDispatcher getOnBackInvokedDispatcher() {
-        if (Storage.isOrderFocusMode) {
-            Intent intent = new Intent(getApplicationContext(), ScannerActivity.class);
-            intent.getExtras().putBoolean("isOrder", true);
-            this.startActivity(intent);
-        }
-
-        return super.getOnBackInvokedDispatcher();
-    }
 }

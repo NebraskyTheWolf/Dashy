@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import eu.fluffici.calendar.shared.getProducts
 import eu.fluffici.calendar.shared.getTransactions
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.*
+import eu.fluffici.dashy.showToast
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
@@ -56,12 +58,11 @@ fun OrderDetailsLayout(
     val orders = remember { mutableStateOf<Order?>(null) }
     val products = remember { mutableStateOf(listOf<Product>()) }
     val transactions = remember { mutableStateOf(listOf<Transaction>()) }
+    val context2 = LocalContext.current
 
     LaunchedEffect(key1 = true) {
         try {
             orders.value = fetchOrder(orderId = orderId)
-            if (orders.value == null)
-                errorMessage.value = "This order does not exists."
             products.value = getProducts(order = orders.value)
             transactions.value = getTransactions(order = orders.value)
         } catch (e: Exception) {
@@ -69,6 +70,12 @@ fun OrderDetailsLayout(
         } finally {
             isLoading.value = false
         }
+    }
+
+    if (orders.value === null) {
+        onParentClick()
+        context2.showToast("This order does not exists.")
+        return
     }
 
     if (isLoading.value) {
