@@ -19,6 +19,36 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.bouncycastle.util.encoders.Base64
 
+suspend fun fetchOrderWithPair(orderId: String): Pair<String?, Order?>? = withContext(Dispatchers.IO)  {
+    val client = OkHttpClient()
+
+    var request = Request.Builder()
+    request = if (isBase64(orderId)) {
+        request.url("https://api.fluffici.eu/api/order?orderId=${String(Base64.decode(orderId))}")
+            .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+            .get()
+    } else {
+        request.url("https://api.fluffici.eu/api/order?orderId=${orderId}")
+            .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+            .get()
+    }
+
+    val response = client.newCall(request.build()).execute()
+    if (response.isSuccessful) {
+        val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+
+        if (data.has("error"))
+            return@withContext Pair(data.get("message").asString, null)
+
+        return@withContext Pair(null, Json.decodeFromString<Order>(data.get("data").asJsonObject.get("order").asJsonObject.toString()))
+    } else {
+        Log.d("OrderManager", "Unable to fetch products from the remote server.")
+    }
+
+    return@withContext Pair("Unable to fetch the order", null)
+}
+
+
 suspend fun fetchOrder(orderId: String): Order? = withContext(Dispatchers.IO)  {
     val client = OkHttpClient()
 
@@ -205,93 +235,24 @@ suspend fun makeTypedPayment(orderId: String?, paymentType: String, encoded: Str
         .build()
 
     val response = client.newCall(request).execute()
-    if (response.isSuccessful) {
+    return@withContext if (response.isSuccessful) {
         val data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
 
         if (data.has("error")) {
-            return@withContext Pair(data.get("message").asString, null)
+            Pair(data.get("message").asString, null)
+        } else {
+            Pair(null, data.get("message").asString)
         }
-
-        return@withContext Pair(null, data.get("message").asString)
+    } else {
+        Pair("Unable to contact Fluffici servers.", null)
     }
-
-    return@withContext Pair(null, null)
 }
+
 
 private fun getUrl(orderId: String?, paymentType: String, encoded: String): String {
-    if (paymentType == "VOUCHER")
-        return "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=VOUCHER&encodedData=${encoded}"
-    return "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=CASH"
-}
-
-suspend fun getProducts(order: Order?): List<Product> = withContext(Dispatchers.IO) {
-    val result = mutableListOf<Product>()
-
-    val client = OkHttpClient()
-    val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order?orderId=${order?.order_id}")
-        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
-        .get()
-        .build()
-
-    val response = client.newCall(request).execute()
-    if (response.isSuccessful) {
-        var data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
-        data = data.get("data").asJsonObject
-
-        if (data.get("product").isJsonArray) {
-            data.get("product").asJsonArray.forEach {
-                val product = it.asJsonObject
-
-                result.add(
-                    Product(
-                        product.get("product_name").asString,
-                        product.get("price").asInt,
-                        product.get("quantity").asInt,
-                    )
-                )
-            }
-        }
-    } else {
-        Log.d("OrderManager", "Unable to fetch products from the remote server.")
+    return when (paymentType) {
+        "VOUCHER" -> "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=VOUCHER&encodedData=${encoded}"
+        "CASH" -> "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=CASH"
+        else -> "https://api.fluffici.eu/api/order/payment?orderId=${orderId}&paymentType=$paymentType"
     }
-
-    return@withContext result
-}
-
-suspend fun getTransactions(order: Order?): List<Transaction> = withContext(Dispatchers.IO) {
-    val result = mutableListOf<Transaction>()
-
-    val client = OkHttpClient()
-    val request = Request.Builder()
-        .url("https://api.fluffici.eu/api/order?orderId=${order?.order_id}")
-        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
-        .get()
-        .build()
-
-    val response = client.newCall(request).execute()
-    if (response.isSuccessful) {
-        var data = Gson().fromJson(response.body?.string(), JsonObject::class.java)
-        data = data.get("data").asJsonObject
-
-        if (data.get("payment").isJsonArray) {
-            data.get("payment").asJsonArray.forEach {
-                val payment = it.asJsonObject
-
-                result.add(
-                    Transaction(
-                        order?.order_id,
-                        payment.get("status").asString,
-                        payment.get("transaction_id").asString,
-                        payment.get("provider").asString,
-                        payment.get("price").asInt,
-                    )
-                )
-            }
-        }
-    } else {
-        Log.d("OrderManager", "Unable to fetch products from the remote server.")
-    }
-
-    return@withContext result
 }

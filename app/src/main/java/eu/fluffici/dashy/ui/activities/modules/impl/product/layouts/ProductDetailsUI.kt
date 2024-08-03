@@ -56,6 +56,27 @@ import java.util.Date
 import java.util.Locale
 
 val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("cs"))
+fun getPrice(value: Double): String {
+    currencyFormat.currency = Currency.getInstance("CZK")
+    return currencyFormat.format(value)
+}
+
+fun getOrderStatus(value: String): String {
+    return when(value) {
+        "PENDING_APPROVAL" -> "Approval"
+        "PROCESSING" -> "Processing"
+        "CANCELLED", "DENIED" -> "Cancelled"
+        "REFUNDED" -> "Refunded"
+        "DISPUTED" -> "Disputed"
+        "DELIVERED" -> "Delivered"
+        "ARCHIVED" -> "Archived"
+        "COMPLETED" -> "Completed"
+        "OUTING" -> "Ready for pickup"
+        "OUTING_DELIVERED" -> "Picked up"
+        else -> value
+    }
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -412,10 +433,7 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
                 value = discount,
                 onValueChange = { discount = it },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-
-                    },
+                    .fillMaxWidth(),
                 textStyle = MaterialTheme.typography.body2
             )
 
@@ -437,13 +455,13 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
-                    onDismiss()
                     createViewModel.createSale(DummyProductSale(
                         product = product,
-                        reduction = discount,
+                        reduction = discount.toDouble(),
                         expiration = expirationDate
                     )).let {
                         context.showToast("Sales added on ${product.name}")
+                        onDismiss()
                     }
                 }) {
                     Text("Apply")
@@ -453,23 +471,29 @@ fun AddSalesDialog(onDismiss: () -> Unit, product: ProductBody) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
     val createViewModel: CreateViewModel = viewModel(
         factory = CreateViewModelFactory()
     )
 
+    val getErrors by createViewModel.getErrors.collectAsState()
+
+    LaunchedEffect(getErrors) {}
+
     val context = LocalContext.current
     var name by remember { mutableStateOf(product.name) }
     var description by remember { mutableStateOf(product.description) }
-    var price by remember { mutableStateOf(product.price.toString()) }
-    var status by remember { mutableStateOf(product.displayed.toString()) }
+    var price by remember { mutableDoubleStateOf(product.price) }
+    var status by remember { mutableStateOf(if (product.displayed == 1) "Public" else "Private") } // Default to "Public"
+    var statusExpanded by remember { mutableStateOf(false) }
 
     CustomDialog(onDismiss = onDismiss) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("Edit Product", style = MaterialTheme.typography.h6)
+            Text("Edit a product", style = MaterialTheme.typography.h6)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -495,8 +519,8 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
 
             Text("Price", style = MaterialTheme.typography.caption)
             TextField(
-                value = price,
-                onValueChange = { price = it },
+                value = price.toString(),
+                onValueChange = { price = it.toDouble() },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = MaterialTheme.typography.body2
             )
@@ -504,12 +528,40 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Status", style = MaterialTheme.typography.caption)
-            TextField(
-                value = status,
-                onValueChange = { status = it },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.body2
-            )
+            ExposedDropdownMenuBox(
+                expanded = statusExpanded,
+                onExpandedChange = { statusExpanded = !statusExpanded }
+            ) {
+                TextField(
+                    value = status,
+                    onValueChange = { },
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { statusExpanded = true },
+                    textStyle = MaterialTheme.typography.body2
+                )
+                ExposedDropdownMenu(
+                    expanded = statusExpanded,
+                    onDismissRequest = { statusExpanded = false }
+                ) {
+                    DropdownMenuItem(onClick = {
+                        status = "Public"
+                        statusExpanded = false
+                    }) {
+                        Text("Public")
+                    }
+                    DropdownMenuItem(onClick = {
+                        status = "Private"
+                        statusExpanded = false
+                    }) {
+                        Text("Private")
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -522,9 +574,14 @@ fun EditProductDialog(onDismiss: () -> Unit, product: ProductBody) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
-                    onDismiss()
-                    createViewModel.updateProduct(product = product).let {
-                        context.showToast("Product ${product.name} has been updated.")
+                    createViewModel.updateProduct(product = product.copy(
+                        name = name,
+                        description = description,
+                        price = price,
+                        displayed = if (status == "Public") 1 else 0
+                    )).let {
+                        onDismiss()
+                        context.showToast("Product $name has been updated.")
                     }
                 }) {
                     Text("Save")

@@ -58,6 +58,7 @@ import eu.fluffici.calendar.StatusBarColorUpdateEffect
 import eu.fluffici.calendar.rememberFirstCompletelyVisibleMonth
 import eu.fluffici.calendar.shared.Akce
 import eu.fluffici.calendar.shared.akceDateTimeFormatter
+import eu.fluffici.calendar.shared.akceDateTimeFormatterCal
 import eu.fluffici.calendar.shared.displayText
 import eu.fluffici.calendar.shared.generateFlights
 import eu.fluffici.dashy.R
@@ -281,7 +282,7 @@ private fun LazyItemScope.AkceInformation(akce: Akce) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = akceDateTimeFormatter.format(akce.time).uppercase(Locale.ENGLISH),
+                text = akceDateTimeFormatterCal.format(akce.time).uppercase(Locale.ENGLISH),
                 textAlign = TextAlign.Center,
                 lineHeight = 17.sp,
                 fontSize = 12.sp,

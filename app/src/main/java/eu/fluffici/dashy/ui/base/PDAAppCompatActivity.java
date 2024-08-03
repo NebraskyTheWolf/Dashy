@@ -53,11 +53,5 @@ public class PDAAppCompatActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-
-        if (Storage.isOrderFocusMode) {
-            Intent intent = new Intent(getApplicationContext(), ScannerActivity.class);
-            intent.getExtras().putBoolean("isOrder", true);
-            this.startActivity(intent);
-        }
     }
 }

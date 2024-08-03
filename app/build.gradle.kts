@@ -104,6 +104,8 @@ dependencies {
     implementation("com.github.gmfe:gm_pda_scanner:1.0.14")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.4")
+
     implementation("com.github.volsahin:bottomify-navigation-view:1.0.2")
     implementation("com.github.bumptech.glide:glide:3.7.0")
     implementation("com.anggrayudi:materialpreference:3.8.0")

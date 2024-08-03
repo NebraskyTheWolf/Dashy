@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,12 +21,15 @@ import androidx.compose.ui.unit.sp
 import eu.fluffici.calendar.clickable
 import eu.fluffici.calendar.shared.generateOrders
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.entities.FullOrder
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.events.module.CardOrderClickEvent
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.PaginateButtons
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.getOrderStatus
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 
 @Composable
@@ -57,12 +61,16 @@ fun OrdersList(
     }
 
     if (isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black), contentAlignment = Alignment.Center) {
             LoadingIndicator()
         }
     } else {
         errorMessage.value?.let { error ->
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black), contentAlignment = Alignment.Center) {
                 Text(error, color = Color.White)
             }
         } ?: run {
@@ -109,37 +117,60 @@ fun OrderItem(
     order: Order,
     mBus: EventBus
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                mBus.post(CardOrderClickEvent(order = order.order_id))
-            },
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 4.dp,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = order.first_name + " " +  order.last_name,
-                    style = MaterialTheme.typography.h6,
-                    color = MaterialTheme.colors.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    fontFamily = appFontFamily
-                )
-                Text(
-                    text = order.status,
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-                )
-            }
+    val coroutineScope = rememberCoroutineScope()
+    val fullOrderState = remember { mutableStateOf<FullOrder?>(null) }
+
+    LaunchedEffect(order) {
+        coroutineScope.launch {
+            fullOrderState.value = order.getAllDetails()
         }
     }
+
+    fullOrderState.value?.let {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    mBus.post(CardOrderClickEvent(order = it.order.order_id))
+                },
+            shape = RoundedCornerShape(8.dp),
+            backgroundColor = MaterialTheme.colors.surface,
+            elevation = 4.dp,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = it.customer.value.first_name + " " + it.customer.value.last_name,
+                        style = MaterialTheme.typography.h6,
+                        color = MaterialTheme.colors.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        fontFamily = appFontFamily
+                    )
+                    Text(
+                        text = getOrderStatus(it.order.status),
+                        style = MaterialTheme.typography.body2,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    } ?: run {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            backgroundColor = MaterialTheme.colors.surface,
+            elevation = 4.dp,
+        ) {
+            LoadingIndicator()
+        }
+    }
+
+
 }

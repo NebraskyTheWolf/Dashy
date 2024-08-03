@@ -55,6 +55,9 @@ class ProductActivity : Module(
                 }
                 this.startActivity(intent)
             }
+            "product_list" -> {
+                this.startActivity(Intent(applicationContext, ProductListActivity::class.java))
+            }
             "inventory" -> {
                 this.startActivity(Intent(applicationContext, ProductInventoryActivity::class.java))
             }

@@ -16,16 +16,17 @@ import eu.fluffici.dashy.model.RoleModel
 import eu.fluffici.dashy.model.UserModel
 import eu.fluffici.dashy.model.hasRole
 import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
-import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 private typealias Info = Akce.Info
 
@@ -329,6 +330,24 @@ suspend fun fetchAccountingStats(): List<AccountingModel> = withContext(Dispatch
     return@withContext listModel
 }
 
+suspend fun fetchLatestOrder(): Order? = withContext(Dispatchers.IO) {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/device/latest-order")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+
+        return@withContext Json.decodeFromString<Order>(element.toString())
+    }
+
+    return@withContext null
+}
+
 suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Order>()
 
@@ -348,18 +367,14 @@ suspend fun generateOrders(page: Int = 1): List<Order> = withContext(Dispatchers
             result.add(Order(
                     it.id,
                     it.order_id,
-                    it.first_name,
-                    it.last_name,
-                    it.first_address,
-                    it.second_address,
-                    it.postal_code,
-                    it.country,
-                    it.email,
-                    it.phone_number,
+                    it.sale_id,
+                    it.carrier_id,
+                    it.address_id,
                     it.status,
                     it.customer_id,
                     it.created_at,
-                    it.updated_at
+                    it.updated_at,
+                    it.tracking_number
             ))
         }
 
@@ -436,4 +451,14 @@ fun ping(): Boolean {
     return !response.isSuccessful
 }
 
+fun toJavaDate(value: String) : String {
+    if (value.indexOf('T') == -1)
+        return value
+    return dateFormat.format(Timestamp.valueOf(value.replace("T", " ").replace(".000000Z", "")))
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+val akceDateTimeFormatterCal: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE'\n'dd MMM'\n'HH:mm");
 val akceDateTimeFormatter: SimpleDateFormat = SimpleDateFormat("EEE'\n'dd MMM'\n'HH:mm");
+val dateFormat: SimpleDateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a");

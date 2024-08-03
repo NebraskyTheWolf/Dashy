@@ -36,8 +36,7 @@ abstract class Module(
     }
 
     protected fun destroy() {
-        System.gc()
-        newIntent(this.getParentUI())
+
     }
 
     protected fun getParentUI(): Intent {

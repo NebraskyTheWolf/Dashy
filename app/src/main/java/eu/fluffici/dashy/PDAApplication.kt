@@ -12,6 +12,7 @@ import android.view.WindowManager
 import androidx.multidex.MultiDexApplication
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.jakewharton.threetenabp.AndroidThreeTen
 import com.scottyab.rootbeer.RootBeer
 import eu.fluffici.calendar.shared.ping
 import eu.fluffici.dashy.events.auth.DeviceAuthorization
@@ -51,6 +52,7 @@ open class PDAApplication : MultiDexApplication() {
         this.magiskCheck = RootCheck()
         this.magiskCheck.onStart(applicationContext)
 
+        AndroidThreeTen.init(this)
 
         // Simple pinger request to detect when the device is offline.
         this.mBus.post(NetworkPing())

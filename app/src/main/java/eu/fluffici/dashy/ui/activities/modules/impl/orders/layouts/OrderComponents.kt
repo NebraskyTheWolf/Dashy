@@ -27,6 +27,10 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,82 +39,109 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.fluffici.dashy.R
+import eu.fluffici.dashy.entities.FullOrder
 import eu.fluffici.dashy.entities.Order
 import eu.fluffici.dashy.entities.Product
 import eu.fluffici.dashy.entities.Transaction
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
+import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.getOrderStatus
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.getPrice
+import kotlinx.coroutines.launch
 
 @Composable
-fun OrderDetails(context: Context, order: Order?) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(10.dp),
-        elevation = 8.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+fun OrderDetails(context: Context, order: Order) {
+    val coroutineScope = rememberCoroutineScope()
+    val fullOrderState = remember { mutableStateOf<FullOrder?>(null) }
+
+    LaunchedEffect(order) {
+        coroutineScope.launch {
+            fullOrderState.value = order.getAllDetails()
+        }
+    }
+
+    fullOrderState.value?.let { fullOrder ->
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(10.dp),
+            elevation = 8.dp
         ) {
-            Text(
-                text = "Order status: ${order!!.status}",
-                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black,
-                fontFamily = appFontFamily
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
-
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFEFEFEF))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
+                modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Customer Information",
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = appFontFamily,
-                    fontSize = 16.sp
+                    text = "Order status: ${getOrderStatus(fullOrder.order.status)}",
+                    style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                    color = Color.Black,
+                    fontFamily = appFontFamily
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Name: ${order.first_name} ${order.last_name}",
-                    fontFamily = appFontFamily,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = "Email: ${order.email}",
-                    fontFamily = appFontFamily,
-                    fontSize = 14.sp
-                )
-                ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = order.phone_number)
-            }
 
-            Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
+                Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFEFEFEF))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "Customer Address",
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = appFontFamily,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextWithLabel(label = "Address:", value = order.first_address)
-                TextWithLabel(label = "Co.Address:", value = order.second_address)
-                TextWithLabel(label = "Zip code:", value = order.postal_code)
-                TextWithLabel(label = "Country:", value = order.country)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFEFEFEF))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Customer Information",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = appFontFamily,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Name: ${fullOrder.customer.value.first_name} ${fullOrder.customer.value.last_name}",
+                        fontFamily = appFontFamily,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Email: ${fullOrder.customer.value.email}",
+                        fontFamily = appFontFamily,
+                        fontSize = 14.sp
+                    )
+                    ClickablePhoneNumber(context = context, title = "Phone:", phoneNumber = fullOrder.customer.value.phone)
+                }
+
+                Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.Gray, thickness = 1.dp)
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFEFEFEF))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Customer Address",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = appFontFamily,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextWithLabel(label = "Address:", value = fullOrder.address.value.address_one)
+                    TextWithLabel(label = "Co.Address:", value = fullOrder.address.value.address_two)
+                    TextWithLabel(label = "City:", value = fullOrder.address.value.city)
+                    TextWithLabel(label = "Zip Code:", value = fullOrder.address.value.zip)
+                    TextWithLabel(label = "Country:", value = fullOrder.address.value.country)
+                }
             }
+        }
+    } ?: run {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            backgroundColor = MaterialTheme.colors.surface,
+            elevation = 4.dp,
+        ) {
+            LoadingIndicator()
         }
     }
 }
@@ -222,7 +253,7 @@ fun TransactionCard(transaction: Transaction) {
                 Spacer(modifier = Modifier.height(4.dp))
                 TransactionDetail(title = "Status:", value = transaction.status)
                 Spacer(modifier = Modifier.height(4.dp))
-                TransactionDetail(title = "Amount:", value = "${transaction.price} Kč")
+                TransactionDetail(title = "Amount:", value = getPrice(transaction.price!!.toDouble()))
                 Spacer(modifier = Modifier.height(4.dp))
                 TransactionDetail(title = "Method of Payment:", value = transaction.provider)
             }
@@ -322,7 +353,7 @@ fun ProductCard(product: Product) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${product.price} Kč",
+                    text = getPrice((product.price * product.quantity).toDouble()),
                     style = MaterialTheme.typography.body1,
                     color = Color.Black,
                     fontFamily = appFontFamily

@@ -33,67 +33,68 @@ fun PaymentInProgressScreen(
     onSuccessConfirm: () -> Unit = {},
     onFailureConfirm: () -> Unit = {},
 ) {
-    var transactionStatus by remember { mutableStateOf(Pair<String?, String?>(null, null)) }
+    var transactionStatus by remember { mutableStateOf<Pair<String?, String?>?>(null) }
 
     LaunchedEffect(key1 = true) {
         transactionStatus = makeTypedPayment(orderId = transaction.order, transaction.transactionType.type, transaction.voucherBody)
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black)
-        .padding(5.dp)) {
-
-        Column {
-            if (transactionStatus.first != null) {
-                DashboardTitle(text = "Go back", icon = R.drawable.square_arrow_left_svg, true) {}
+    transactionStatus?.let { status ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(5.dp)
+        ) {
+            when {
+                status.second != null -> {
+                    Dialog(
+                        title = "Payment success.",
+                        message = status.second.toString(),
+                        onConfirm = onSuccessConfirm,
+                        onCancel = { },
+                        hasDismiss = false
+                    )
+                }
+                status.first != null -> {
+                    Dialog(
+                        title = "Payment failed.",
+                        message = status.first.toString(),
+                        onConfirm = onFailureConfirm,
+                        onCancel = { },
+                        hasDismiss = false
+                    )
+                }
+                else -> {
+                    Dialog(
+                        title = "Payment failed.",
+                        message = "Unable to contact Fluffici servers.",
+                        onConfirm = onFailureConfirm,
+                        onCancel = { },
+                        hasDismiss = false
+                    )
+                }
             }
-
+        }
+    } ?: run {
+        Column {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 Row(horizontalArrangement = Arrangement.Center) {
                     CircularProgressIndicator(color = Color.White)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Processing...",
+                        text = "Processing Payment...",
                         color = Color.White,
                         fontSize = 18.sp,
                         fontFamily = appFontFamily
                     )
                 }
             }
-        }
-
-        if (transactionStatus.second != null) {
-            Dialog(
-                title = "Payment success.",
-                message = transactionStatus.second.toString(),
-                onConfirm = onSuccessConfirm,
-                onCancel = { },
-                hasDismiss = false
-            )
-        }
-
-        if (transactionStatus.first != null) {
-            Dialog(
-                title = "Payment failed.",
-                message = transactionStatus.first.toString(),
-                onConfirm = onFailureConfirm,
-                onCancel = { },
-                hasDismiss = false
-            )
-        }
-
-        if (transactionStatus.first == null && transactionStatus.second == null) {
-            Dialog(
-                title = "Payment failed.",
-                message = "Unable to contact Fluffici servers.",
-                onConfirm = onFailureConfirm,
-                onCancel = { },
-                hasDismiss = false
-            )
         }
     }
 }

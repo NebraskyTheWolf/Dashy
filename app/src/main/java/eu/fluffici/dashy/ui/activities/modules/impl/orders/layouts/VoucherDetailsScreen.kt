@@ -6,10 +6,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,6 +22,8 @@ import eu.fluffici.dashy.entities.Error
 import eu.fluffici.dashy.entities.Voucher
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.getPrice
+import kotlinx.coroutines.delay
 
 @Composable
 fun VoucherInformationScreen(
@@ -54,7 +59,7 @@ fun VoucherInformationScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colors.background)
+                    .background(Color.Black)
                     .padding(16.dp)
             ) {
                 Column {
@@ -70,6 +75,30 @@ fun VoucherInformationScreen(
 
                     voucher.value.second?.let {
                         VoucherCard(it)
+                    } ?: run {
+                        var showError by remember { mutableStateOf(false) }
+
+                        LaunchedEffect(Unit) {
+                            delay(5000)
+                            showError = true
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (showError) {
+                                errorMessage.value?.let {
+                                    Text(text = it, color = Color.Red)
+                                } ?: run {
+                                    Text(text = "Unable to read voucher details.", color = Color.Red)
+                                }
+                            } else {
+                                LoadingIndicator()
+                            }
+                        }
                     }
                 }
             }
@@ -96,7 +125,7 @@ fun VoucherCard(voucher: Voucher) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Amount: ${voucher.balance} Kč",
+                text = "Amount: ${getPrice(voucher.balance.toDouble())}",
                 style = MaterialTheme.typography.body2
             )
 

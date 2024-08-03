@@ -7,55 +7,52 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.events.module.CardOrderClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
-import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductDetailsUI
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductListUI
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductUI
+import eu.fluffici.dashy.ui.activities.modules.impl.scanner.ScannerActivity
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-class ProductDetailsActivity : Module(
-    "products",
+class ProductListActivity : Module(
+    "products_list",
     "platform.shop.products.read",
     false,
-    R.drawable.shopping_bag_check_svg,
-    R.string.products_two
+    R.drawable.apps_filled_svg,
+    R.string.products_one
 ) {
 
     private val mBus = EventBus.getDefault()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.performCheck()
 
-        setContent {
-            ProductDetailsUI(productId = this.intent.getStringExtra("productId")!!, eventBus = this.mBus, onParentClick = {
-                this.newIntent(Intent(applicationContext, MainActivity::class.java))
-            })
-        }
-
         this.mBus.register(this)
+
+        setContent {
+            ProductListUI(
+                onParentClick = {
+                    this.newIntent(Intent(applicationContext, MainActivity::class.java))
+                },
+                mBus = this.mBus
+            )
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        this.destroy()
-
         this.mBus.unregister(this)
     }
 
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    fun onCardClick(event: CardClickEvent) {
-        val split = event.viewId.split("_")
-
-        when(split[0]) {
-            "refresh" -> {
-                startActivity(Intent(applicationContext, ProductDetailsActivity::class.java).apply {
-                    putExtra("productId", split[1])
-                })
-            }
-        }
+    @Subscribe
+    fun onCardClick(event: CardOrderClickEvent) {
+       startActivity(Intent(applicationContext, ProductDetailsActivity::class.java).apply {
+           putExtra("productId", event.order)
+       })
     }
 }

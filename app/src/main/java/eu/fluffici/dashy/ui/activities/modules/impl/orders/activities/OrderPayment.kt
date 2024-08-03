@@ -33,7 +33,7 @@ class OrderPayment : Module(
         super.onCreate(savedInstanceState)
         this.performCheck()
 
-        val order = intent.getParcelableExtra("ORDER", Order::class.java)
+        val order = intent.getStringExtra("orderId")
         if (order != null) {
             setContent {
                 PaymentMethodSelection(order = order, eventBus = this.mBus, onCancelClick = {

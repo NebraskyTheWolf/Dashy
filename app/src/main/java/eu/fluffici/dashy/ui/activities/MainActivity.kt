@@ -88,6 +88,7 @@ import eu.fluffici.dashy.ui.activities.experiment.LoginConfirmation
 import eu.fluffici.dashy.ui.activities.modules.impl.ProfileActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.calendar.CalendarActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.AuditActivity
+import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderDetailsActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrdersActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.otp.activities.OTPActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductActivity
@@ -212,54 +213,75 @@ class MainActivity : PDAAppCompatActivity() {
 
     @Subscribe(sticky = true,threadMode = ThreadMode.ASYNC)
     fun onClick(event: CardClickEvent) {
-        when (event.viewId) {
-            "users" -> {
-              newIntent(Intent(applicationContext, UsersActivity::class.java))
-            }
-            "support" -> {
-                newIntent(Intent(applicationContext, SupportActivity::class.java))
-            }
-            "calendar" -> {
-                newIntent(Intent(applicationContext, CalendarActivity::class.java))
-            }
-            "auditlog" -> {
-                newIntent(Intent(applicationContext, AuditActivity::class.java))
-            }
-            "orders" -> {
-                newIntent(Intent(applicationContext, OrdersActivity::class.java))
-            }
-            "profile" -> {
-                newIntent(Intent(applicationContext, ProfileActivity::class.java))
-            }
-            "products" -> {
-                newIntent(Intent(applicationContext, ProductActivity::class.java))
-            }
-            "otp" -> {
-                newIntent(Intent(applicationContext, OTPActivity::class.java))
-            }
-            "parent" -> {
-                newIntent(this.intent)
-            }
+        if (event.viewId.indexOf('_') != -1) {
+            val args = event.viewId.split("_")
 
-            // Settings
-
-            "privacy" -> {
-                newIntent(Intent(applicationContext, PrivacySettings::class.java))
-            }
-            "security" -> {
-                newIntent(Intent(applicationContext, SecuritySettings::class.java))
-            }
-
-            // Automated action
-            "fetch_latest_otp" -> {
-                val latestPendingOTP: IAuthentication? = getLatestPendingOTP()
-                if (latestPendingOTP != null) {
-                    newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
-                        putExtra("requestId", latestPendingOTP.requestId)
-
-                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
-                                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+            when (args[0]) {
+                "viewOrder" -> {
+                    startActivity(Intent(applicationContext, OrderDetailsActivity::class.java).apply {
+                        putExtra("orderId", args[1])
                     })
+                }
+            }
+        } else {
+            when (event.viewId) {
+                "users" -> {
+                    newIntent(Intent(applicationContext, UsersActivity::class.java))
+                }
+
+                "support" -> {
+                    newIntent(Intent(applicationContext, SupportActivity::class.java))
+                }
+
+                "calendar" -> {
+                    newIntent(Intent(applicationContext, CalendarActivity::class.java))
+                }
+
+                "auditlog" -> {
+                    newIntent(Intent(applicationContext, AuditActivity::class.java))
+                }
+
+                "orders" -> {
+                    newIntent(Intent(applicationContext, OrdersActivity::class.java))
+                }
+
+                "profile" -> {
+                    newIntent(Intent(applicationContext, ProfileActivity::class.java))
+                }
+
+                "products" -> {
+                    newIntent(Intent(applicationContext, ProductActivity::class.java))
+                }
+
+                "otp" -> {
+                    newIntent(Intent(applicationContext, OTPActivity::class.java))
+                }
+
+                "parent" -> {
+                    newIntent(this.intent)
+                }
+
+                // Settings
+
+                "privacy" -> {
+                    newIntent(Intent(applicationContext, PrivacySettings::class.java))
+                }
+
+                "security" -> {
+                    newIntent(Intent(applicationContext, SecuritySettings::class.java))
+                }
+
+                // Automated action
+                "fetch_latest_otp" -> {
+                    val latestPendingOTP: IAuthentication? = getLatestPendingOTP()
+                    if (latestPendingOTP != null) {
+                        newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
+                            putExtra("requestId", latestPendingOTP.requestId)
+
+                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
+                                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                        })
+                    }
                 }
             }
         }
@@ -450,7 +472,7 @@ fun NavigationGraph(navController: NavHostController, context: Context, mBus: Ev
 fun HomeScreen(applicationContext: Context, mBus: EventBus) {
     StatusBarColorUpdateEffect(toolbarColor)
     DottedBackground()
-    HomePage(applicationContext)
+    HomePage(applicationContext, mBus)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -577,7 +599,7 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
         LaunchedEffect(Unit) {
             stepTexts.forEachIndexed { index, text ->
                 if (index != 0) {
-                    delay((500..5000).random().toLong())
+                    delay((500..1000).random().toLong())
                     currentStepText.value = text
                 }
             }

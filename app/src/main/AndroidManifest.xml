@@ -146,6 +146,15 @@
         </activity>
 
         <activity
+            android:name="eu.fluffici.dashy.ui.activities.modules.impl.product.activities.ProductListActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name="eu.fluffici.dashy.ui.activities.settings.PrivacySettings"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">

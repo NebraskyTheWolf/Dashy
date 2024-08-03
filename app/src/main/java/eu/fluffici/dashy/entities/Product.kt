@@ -17,7 +17,7 @@ data class Product(
 @Serializable
 data class ProductBody(
     val id: Int,
-    val price: Double,
+    var price: Double,
     val views: Int,
     val name: String,
     @SerialName("category_id")

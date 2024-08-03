@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import eu.fluffici.dashy.entities.ProductBody
+import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.generateUPCA
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +20,13 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+
+data class PartialProduct(
+    var id: String,
+    var name: String,
+    var price: Double,
+    var maxPages: Int,
+)
 
 data class CDummyProduct(
     var upcCode: String,
@@ -49,7 +58,7 @@ data class DummyCategory(
 
 data class DummyProductSale(
     var product: ProductBody,
-    var reduction: String,
+    var reduction: Double,
     var expiration: String
 ) {
     private fun toLaravelTime() : String {
@@ -60,7 +69,7 @@ data class DummyProductSale(
         val data = JsonObject()
 
         data.addProperty("productId", product.id)
-        data.addProperty("reduction", reduction.toDouble())
+        data.addProperty("reduction", reduction)
         data.addProperty("expiration", toLaravelTime())
 
         return data.toString().toRequestBody("application/json".toMediaTypeOrNull())
@@ -75,11 +84,15 @@ class CreateViewModel @Inject constructor() : ViewModel() {
     private val _categories = MutableStateFlow<List<DummyCategory>>(emptyList())
     val categories: StateFlow<List<DummyCategory>> get() = _categories
 
+    private val _products = MutableStateFlow<List<PartialProduct>>(emptyList())
+    val products: StateFlow<List<PartialProduct>> get() = _products
+
     private val _getErrors = MutableStateFlow(Pair(false, DummyModal("", "")))
     val getErrors: StateFlow<Pair<Boolean, DummyModal>> get() = _getErrors
 
     init {
         this.init()
+        this.fetchProducts()
     }
 
     private fun init() {
@@ -94,7 +107,8 @@ class CreateViewModel @Inject constructor() : ViewModel() {
             if (response.isSuccessful) {
                 val data = gson.fromJson(response.body?.string(), JsonObject::class.java)
                 if (data.get("status").asBoolean) {
-                    _categories.value = data.get("data").asJsonArray.toArrayList()
+                    val categories: List<DummyCategory> = data.get("data").asJsonArray.toArrayList()
+                    _categories.value = categories
                 } else {
                     _getErrors.value = Pair(true, DummyModal("Error", data.get("message").asString))
                 }
@@ -168,8 +182,46 @@ class CreateViewModel @Inject constructor() : ViewModel() {
 
         return ref.get()
     }
+
+    fun fetchProducts(page: Int = 1) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("https://api.fluffici.eu/api/device/products?page=${page}&limit=1")
+                .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+                val events: List<ProductBody> = element.asJsonObject.get("data").asJsonArray.toArrayList()
+
+                _products.value = emptyList()
+
+                val updatedProducts = events.map {
+                   if (it.hasUpc == 1) {
+                       PartialProduct(
+                           it.upcCode!!,
+                           it.name,
+                           it.price,
+                           element.asJsonObject.get("last_page").asInt
+                       )
+                   } else {
+                       PartialProduct(
+                           generateUPCA(it.id),
+                           it.name,
+                           it.price,
+                           element.asJsonObject.get("last_page").asInt
+                       )
+                   }
+                }
+
+                _products.value = updatedProducts
+            }
+        }
+    }
 }
 
-fun JsonArray.toArrayList(): List<DummyCategory> {
-    return Gson().fromJson(this, object : TypeToken<List<DummyCategory>>() {}.type)
+inline fun <reified T> JsonArray.toArrayList(): List<T> {
+    return Gson().fromJson(this, object : TypeToken<List<T>>() {}.type)
 }

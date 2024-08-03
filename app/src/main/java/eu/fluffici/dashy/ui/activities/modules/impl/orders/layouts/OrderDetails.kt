@@ -19,21 +19,19 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.fluffici.calendar.shared.fetchOrder
-import eu.fluffici.calendar.shared.getProducts
-import eu.fluffici.calendar.shared.getTransactions
+import eu.fluffici.calendar.shared.fetchOrderWithPair
 import eu.fluffici.dashy.R
 import eu.fluffici.dashy.entities.*
-import eu.fluffici.dashy.showToast
 import eu.fluffici.dashy.ui.activities.common.DashboardTitle
 import eu.fluffici.dashy.ui.activities.common.ErrorScreen
 import eu.fluffici.dashy.ui.activities.common.appFontFamily
 import eu.fluffici.dashy.ui.activities.modules.impl.logs.LoadingIndicator
+import kotlinx.coroutines.delay
 
 @Composable
 fun OrderDetailsLayout(
@@ -55,16 +53,25 @@ fun OrderDetailsLayout(
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
-    val orders = remember { mutableStateOf<Order?>(null) }
-    val products = remember { mutableStateOf(listOf<Product>()) }
-    val transactions = remember { mutableStateOf(listOf<Transaction>()) }
-    val context2 = LocalContext.current
+    val orders = remember { mutableStateOf<FullOrder?>(null) }
+    val pairOrder = remember { mutableStateOf<Pair<String?, Order?>?>(null) }
 
     LaunchedEffect(key1 = true) {
         try {
-            orders.value = fetchOrder(orderId = orderId)
-            products.value = getProducts(order = orders.value)
-            transactions.value = getTransactions(order = orders.value)
+            pairOrder.value = fetchOrderWithPair(orderId = orderId)
+            pairOrder.value?.let {
+                if (it.first != null) {
+                    errorMessage.value = it.first
+                } else {
+                    it.second?.let { order ->
+                        orders.value = order.getAllDetails()
+                    } ?: run {
+                        isLoading.value = true
+                    }
+                }
+            } ?: run {
+                isLoading.value = true
+            }
         } catch (e: Exception) {
             errorMessage.value = e.message
         } finally {
@@ -72,142 +79,162 @@ fun OrderDetailsLayout(
         }
     }
 
-    if (orders.value === null) {
-        onParentClick()
-        context2.showToast("This order does not exists.")
-        return
-    }
-
-    if (isLoading.value) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black), contentAlignment = Alignment.Center
-        ) {
-            LoadingIndicator()
-        }
-    } else {
-        errorMessage.value?.let { error ->
-            ErrorScreen(
-                title = "Application error",
-                description = error,
-                onParentClick = {
-                    onParentClick()
-                }
-            )
-        } ?: run {
+    orders.value?.let {
+        if (isLoading.value) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black)
-                    .padding(5.dp)
+                    .background(Color.Black), contentAlignment = Alignment.Center
             ) {
-
-                Column {
-                    DashboardTitle(
-                        text = "Order from ${orders.value?.first_name}",
-                        icon = R.drawable.square_arrow_left_filled_svg,
-                        isOnBeginning = true
-                    ) {
+                LoadingIndicator()
+            }
+        } else {
+            errorMessage.value?.let { error ->
+                ErrorScreen(
+                    title = "Application error",
+                    description = error,
+                    onParentClick = {
                         onParentClick()
                     }
+                )
+            } ?: run {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .padding(5.dp)
+                ) {
 
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        TabRow(
-                            selectedTabIndex = selectedTabIndex,
-                            backgroundColor = Color.Transparent,
-                            contentColor = Color.White,
-                            indicator = { tabPositions ->
-                                TabRowDefaults.Indicator(
-                                    color = Color.White,
-                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
-                                )
-                            }
+                    Column {
+                        DashboardTitle(
+                            text = "Order from ${it.customer.value.first_name}",
+                            icon = R.drawable.square_arrow_left_filled_svg,
+                            isOnBeginning = true
                         ) {
-                            Tab(
-                                selected = selectedTabIndex == 0,
-                                onClick = { selectedTabIndex = 0 }
-                            ) {
-                                Text(text = "Order Details", fontFamily = appFontFamily)
-                            }
-                            Tab(
-                                selected = selectedTabIndex == 1,
-                                onClick = { selectedTabIndex = 1 }
-                            ) {
-                                Text(text = "Transactions", fontFamily = appFontFamily)
-                            }
-                            Tab(
-                                selected = selectedTabIndex == 2,
-                                onClick = { selectedTabIndex = 2 }
-                            ) {
-                                Text(text = "Products", fontFamily = appFontFamily)
-                            }
+                            onParentClick()
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        when (selectedTabIndex) {
-                            0 -> {
-                                OrderDetails(context = context, order = orders.value)
-
-                                if (hasDisputed(transactions.value)) {
-                                    DisputeAlertCard(
-                                        title = "Dispute Alert",
-                                        description = "One or more payment(s) has been disputed by the third party (customer)."
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            TabRow(
+                                selectedTabIndex = selectedTabIndex,
+                                backgroundColor = Color.Transparent,
+                                contentColor = Color.White,
+                                indicator = { tabPositions ->
+                                    TabRowDefaults.Indicator(
+                                        color = Color.White,
+                                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
                                     )
                                 }
-
-                                if (paymentFailed) {
-                                    DisputeAlertCard(
-                                        title = "Last payment failed.",
-                                        description = "One or more payment(s) has failed."
-                                    )
+                            ) {
+                                Tab(
+                                    selected = selectedTabIndex == 0,
+                                    onClick = { selectedTabIndex = 0 }
+                                ) {
+                                    Text(text = "Order Details", fontFamily = appFontFamily)
                                 }
-
-                                if (refundFailed) {
-                                    DisputeAlertCard(
-                                        title = "Refund failed.",
-                                        description = refundMessage
-                                    )
+                                Tab(
+                                    selected = selectedTabIndex == 1,
+                                    onClick = { selectedTabIndex = 1 }
+                                ) {
+                                    Text(text = "Transactions", fontFamily = appFontFamily)
                                 }
-
-                                if (refundSuccess) {
-                                    DisputeAlertCard(
-                                        title = "Successfully refunded.",
-                                        description = refundMessage
-                                    )
+                                Tab(
+                                    selected = selectedTabIndex == 2,
+                                    onClick = { selectedTabIndex = 2 }
+                                ) {
+                                    Text(text = "Products", fontFamily = appFontFamily)
                                 }
-
-                                if (cancelFailed) {
-                                    DisputeAlertCard(
-                                        title = "Cancellation failed.",
-                                        description = refundMessage
-                                    )
-                                }
-
-                                if (cancelSuccess) {
-                                    DisputeAlertCard(
-                                        title = "Successfully cancelled.",
-                                        description = refundMessage
-                                    )
-                                }
-
-                                ActionButton(
-                                    onPaymentClick,
-                                    onCancelClick,
-                                    onRefundClick,
-                                    transaction = transactions.value
-                                )
                             }
-                            1 -> {
-                                TransactionsList(transactions = transactions.value)
-                            }
-                            2 -> {
-                                ProductsList(products = products.value)
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            when (selectedTabIndex) {
+                                0 -> {
+                                    OrderDetails(context = context, order = it.order)
+
+                                    if (hasDisputed(it.transactions.value)) {
+                                        DisputeAlertCard(
+                                            title = "Dispute Alert",
+                                            description = "One or more payment(s) has been disputed by the third party (customer)."
+                                        )
+                                    }
+
+                                    if (paymentFailed) {
+                                        DisputeAlertCard(
+                                            title = "Last payment failed.",
+                                            description = "One or more payment(s) has failed."
+                                        )
+                                    }
+
+                                    if (refundFailed) {
+                                        DisputeAlertCard(
+                                            title = "Refund failed.",
+                                            description = refundMessage
+                                        )
+                                    }
+
+                                    if (refundSuccess) {
+                                        DisputeAlertCard(
+                                            title = "Successfully refunded.",
+                                            description = refundMessage
+                                        )
+                                    }
+
+                                    if (cancelFailed) {
+                                        DisputeAlertCard(
+                                            title = "Cancellation failed.",
+                                            description = refundMessage
+                                        )
+                                    }
+
+                                    if (cancelSuccess) {
+                                        DisputeAlertCard(
+                                            title = "Successfully cancelled.",
+                                            description = refundMessage
+                                        )
+                                    }
+
+                                    ActionButton(
+                                        onPaymentClick,
+                                        onCancelClick,
+                                        onRefundClick,
+                                        transaction = it.transactions.value
+                                    )
+                                }
+                                1 -> {
+                                    TransactionsList(transactions = it.transactions.value)
+                                }
+                                2 -> {
+                                    ProductsList(products = it.products.value)
+                                }
                             }
                         }
                     }
                 }
+            }
+        }
+    } ?: run {
+        var showError by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            delay(5000)
+            showError = true
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            if (showError) {
+                errorMessage.value?.let {
+                    Text(text = it, color = Color.Red)
+                } ?: run {
+                    Text(text = "Unable to read order details.", color = Color.Red)
+                }
+            } else {
+                LoadingIndicator()
             }
         }
     }
