@@ -9,8 +9,7 @@ import eu.fluffici.dashy.R
 import eu.fluffici.dashy.events.module.CardClickEvent
 import eu.fluffici.dashy.ui.activities.MainActivity
 import eu.fluffici.dashy.ui.activities.modules.Module
-import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.OtpUI
-import eu.fluffici.dashy.ui.activities.modules.impl.product.layouts.ProductUI
+import eu.fluffici.dashy.ui.activities.modules.impl.otp.layouts.OtpUI
 import eu.fluffici.dashy.utils.newIntent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe

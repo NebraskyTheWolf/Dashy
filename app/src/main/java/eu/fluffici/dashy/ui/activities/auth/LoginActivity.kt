@@ -136,6 +136,8 @@ class LoginActivity : AppCompatActivity() {
                 Storage.setUser(applicationContext, body.user.toJSON().toString())
                 Storage.setAccessToken(applicationContext, body.token)
 
+                System.setProperty("X-Bearer-token", body.token)
+
                 FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
                     if (!task.isSuccessful) {
                         Log.w(ContentValues.TAG, "Fetching FCM registration token failed", task.exception)

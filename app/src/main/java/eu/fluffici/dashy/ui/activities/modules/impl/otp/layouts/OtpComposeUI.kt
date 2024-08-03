@@ -1,4 +1,4 @@
-package eu.fluffici.dashy.ui.activities.modules.impl.product.layouts
+package eu.fluffici.dashy.ui.activities.modules.impl.otp.layouts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

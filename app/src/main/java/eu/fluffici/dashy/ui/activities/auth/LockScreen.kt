@@ -47,6 +47,9 @@ class LockScreen : PDAAppCompatActivity() {
             text = "Please authenticate to continue."
 
         setContent {
+            val maxAttempts = remember { mutableIntStateOf(3) }
+            val failedAttempts = remember { mutableIntStateOf(0) }
+
             Box(modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
@@ -71,8 +74,9 @@ class LockScreen : PDAAppCompatActivity() {
                                 })
                             } else {
                                 runOnUiThread {
-                                    Toast.makeText(applicationContext, "Login failed, wrong pin code.", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(applicationContext, "Login failed, wrong pin code. Attempt ${failedAttempts.intValue} of ${maxAttempts.intValue}.", Toast.LENGTH_LONG).show()
                                 }
+                                failedAttempts.intValue++
                             }
                         },
                         onPinEnteredCapture = {
@@ -97,7 +101,8 @@ class LockScreen : PDAAppCompatActivity() {
                                     Toast.makeText(applicationContext, "Confirmation failed, wrong pin code.", Toast.LENGTH_LONG).show()
                                 }
                             }
-                        }
+                        },
+                        isLocked = (failedAttempts.intValue >= maxAttempts.intValue)
                     )
                 }
             }
@@ -177,7 +182,7 @@ fun CustomNumpad(onPinEntered: (String) -> Unit) {
                 .padding(end = 64.dp)
         ) {
             Text(
-                text = pin,
+                text = "*".repeat(pin.length),
                 fontSize = 32.sp,
                 color = Color.White,
                 modifier = Modifier.padding(16.dp)
@@ -238,6 +243,7 @@ fun BiometricLoginScreen(
     onPinEntered: (String) -> Unit,
     onPinEnteredCapture: (String) -> Unit,
     onPinEnteredConfirm: (String) -> Unit,
+    isLocked: Boolean = false
 ) {
     var useBiometric by remember { mutableStateOf(!isCaptureMode && !isConfirmMode) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -248,7 +254,6 @@ fun BiometricLoginScreen(
                 onSuccess()
                 errorMessage = null
             } else {
-                // Biometric authentication failed, fallback to PIN
                 useBiometric = false
                 errorMessage = error
             }
@@ -262,25 +267,44 @@ fun BiometricLoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Login",
-            style = MaterialTheme.typography.h4
-        )
+        if (isLocked) {
+            Text(
+                text = "Login",
+                style = MaterialTheme.typography.h4
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        if (useBiometric) {
-            Text(text = "Please authenticate using biometrics.", color = Color.White, fontFamily = appFontFamily)
+            Text(
+                text = "Too much attempts.",
+                color = Color.Red,
+                fontFamily = appFontFamily
+            )
         } else {
-            CustomNumpad { pin ->
-                if (pin.length >= 4) {
-                    if (isConfirmMode) {
-                        onPinEnteredConfirm(pin)
-                    } else {
-                        if (isCaptureMode) {
-                            onPinEnteredCapture(pin)
+            Text(
+                text = "Login",
+                style = MaterialTheme.typography.h4
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (useBiometric) {
+                Text(
+                    text = "Please authenticate using biometrics.",
+                    color = Color.White,
+                    fontFamily = appFontFamily
+                )
+            } else {
+                CustomNumpad { pin ->
+                    if (pin.length >= 4) {
+                        if (isConfirmMode) {
+                            onPinEnteredConfirm(pin)
                         } else {
-                            onPinEntered(pin)
+                            if (isCaptureMode) {
+                                onPinEnteredCapture(pin)
+                            } else {
+                                onPinEntered(pin)
+                            }
                         }
                     }
                 }

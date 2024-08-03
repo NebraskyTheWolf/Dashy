@@ -657,7 +657,6 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(30.dp))
             CircularProgressIndicator(
-                progress = progress,
                 color = Color.Red,
                 strokeWidth = 4.dp
             )
