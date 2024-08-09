@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.RequiresApi
+import cn.tongdun.mobrisk.TDRisk
 import com.anggrayudi.storage.extension.toBoolean
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -16,6 +17,7 @@ import eu.fluffici.dashy.model.RoleModel
 import eu.fluffici.dashy.model.UserModel
 import eu.fluffici.dashy.model.hasRole
 import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
+import eu.fluffici.dashy.ui.activities.settings.otp.TrustedDevice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -153,6 +155,7 @@ fun declineOtp(requestId: String): Boolean {
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/decline")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .header("X-Device-Id", TDRisk.getBlackbox().getString("device_id"))
         .get()
         .build()
 
@@ -171,6 +174,7 @@ fun grantOtp(requestId: String): Boolean {
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/grant")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .header("X-Device-Id", TDRisk.getBlackbox().getString("device_id"))
         .get()
         .build()
 
@@ -189,6 +193,7 @@ fun getLatestPendingOTP(): IAuthentication? {
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/user/@me/fetch-otp")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .header("X-Device-Id", TDRisk.getBlackbox().getString("device_id"))
         .get()
         .build()
 
@@ -213,6 +218,7 @@ suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/user/@me/otp-request/${requestId}/fetch")
         .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .header("X-Device-Id", TDRisk.getBlackbox().getString("device_id"))
         .get()
         .build()
 
@@ -226,6 +232,35 @@ suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext
 
     return@withContext null
 }
+
+suspend fun getTrustedDevices(): List<TrustedDevice> = withContext(Dispatchers.IO) {
+    val data = ArrayList<TrustedDevice>()
+
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://api.fluffici.eu/api/user/@me/trusted-devices")
+        .header("Authorization", "Bearer ${System.getProperty("X-Bearer-token")}")
+        .get()
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.isSuccessful) {
+        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+        element.asJsonObject.get("data").asJsonArray.forEach {
+            val body = it.asJsonObject;
+
+            data.add(TrustedDevice(
+                body.get("deviceId").asString,
+                body.get("modelName").asString,
+                body.get("registrationId").asString,
+                0L
+            ))
+        }
+    }
+
+    return@withContext data
+}
+
 
 suspend fun generateUserAudit(target: String = ""): List<Audit.AuditLogEntry> = withContext(Dispatchers.IO) {
     val result = mutableListOf<Audit.AuditLogEntry>()
@@ -341,6 +376,9 @@ suspend fun fetchLatestOrder(): Order? = withContext(Dispatchers.IO) {
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
         val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+
+        if (element.asJsonObject.has("error"))
+            return@withContext null
 
         return@withContext Json.decodeFromString<Order>(element.toString())
     }

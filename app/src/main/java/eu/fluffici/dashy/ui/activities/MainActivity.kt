@@ -97,6 +97,7 @@ import eu.fluffici.dashy.ui.activities.modules.impl.support.SupportActivity
 import eu.fluffici.dashy.ui.activities.modules.impl.users.UsersActivity
 import eu.fluffici.dashy.ui.activities.settings.PrivacySettings
 import eu.fluffici.dashy.ui.activities.settings.SecuritySettings
+import eu.fluffici.dashy.ui.activities.settings.otp.TrustedDeviceSettings
 import eu.fluffici.dashy.ui.activities.theme.Shapes
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
 import eu.fluffici.dashy.utils.Storage
@@ -269,6 +270,10 @@ class MainActivity : PDAAppCompatActivity() {
 
                 "security" -> {
                     newIntent(Intent(applicationContext, SecuritySettings::class.java))
+                }
+
+                "devices" -> {
+                    newIntent(Intent(applicationContext, TrustedDeviceSettings::class.java))
                 }
 
                 // Automated action
@@ -619,23 +624,23 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp), // Adjust padding for small screens
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(id = R.drawable.fluffici_logo),
                 contentDescription = "Brand Logo",
-                modifier = Modifier.size(if (isPda) 200.dp else 300.dp) // Adjust size for small screens
+                modifier = Modifier.size(if (isPda) 200.dp else 300.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Skvělá komunita čeká na tebe!",
-                fontSize = if (isPda) 16.sp else 20.sp, // Adjust font size for small screens
+                fontSize = if (isPda) 16.sp else 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = appFontFamily,
                 color = Color.White,
-                textAlign = TextAlign.Center // Ensure text is centered on small screens
+                textAlign = TextAlign.Center
             )
             if (isPda) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -651,7 +656,7 @@ fun SplashContent(isPda: Boolean, onLastStepReached: () -> Unit) {
                         fontSize = 16.sp,
                         fontFamily = appFontFamily,
                         color = Color.White,
-                        textAlign = TextAlign.Center // Ensure text is centered on small screens
+                        textAlign = TextAlign.Center
                     )
                 }
             }

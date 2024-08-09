@@ -50,6 +50,8 @@ import kotlinx.serialization.Serializable
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.net.NetworkInterface
+import java.util.Collections
 import java.util.Locale
 
 @Serializable
@@ -222,7 +224,7 @@ fun InvitationScreen(
                 AnimatedTextCard(listOf(
                     "Service: ${request.value!!.service}",
                     "Date: ${request.value!!.date}",
-                    "IP Address: ${request.value!!.ipAddress}",
+                    "IP Address: ${getLocalIpAddress()}",
                     "Location: ${request.value!!.location}",
                 ))
 
@@ -343,4 +345,27 @@ fun AnimatedTextCard(textList: List<String>) {
             }
         }
     }
+}
+
+fun getLocalIpAddress(): String {
+    try {
+        val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
+        for (networkInterface in interfaces) {
+            val addresses = Collections.list(networkInterface.inetAddresses)
+            for (address in addresses) {
+                if (!address.isLoopbackAddress) {
+                    val ip = address.hostAddress
+                    if (ip != null) {
+                        if (ip.indexOf(':') < 0) {
+                            return ip
+                        }
+                    }
+                }
+            }
+        }
+    } catch (ex: Exception) {
+        ex.printStackTrace()
+    }
+
+    return "10.0.0.18"
 }

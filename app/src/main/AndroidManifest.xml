@@ -191,6 +191,15 @@
         </activity>
 
         <activity
+            android:name="eu.fluffici.dashy.ui.activities.settings.otp.TrustedDeviceSettings"
+            android:exported="true"
+            android:theme="@style/Theme.PDADashy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name="eu.fluffici.dashy.ui.activities.modules.impl.orders.activities.OrderListActivity"
             android:exported="true"
             android:theme="@style/Theme.PDADashy">

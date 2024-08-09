@@ -36,6 +36,7 @@ fun OtpUI(eventBus: EventBus, onParentClick: () -> Unit = {}) {
 fun OTPGrid(eventBus: EventBus) {
     val orders = listOf(
         DashboardUICard("requests", icon = R.drawable.git_pull_request_svg, text = R.string.request),
+        DashboardUICard("devices", icon = R.drawable.brand_android_svg, text = R.string.devices),
         DashboardUICard("history", icon = R.drawable.history_svg, text = R.string.history)
     )
 

@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.multidex.MultiDexApplication
+import cn.tongdun.mobrisk.TDRisk
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -56,6 +57,8 @@ open class PDAApplication : MultiDexApplication() {
 
         // Simple pinger request to detect when the device is offline.
         this.mBus.post(NetworkPing())
+
+        TDRisk.init(applicationContext);
 
         if (isOffline) {
             val i = Intent(this@PDAApplication, ErrorScreen::class.java)

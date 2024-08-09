@@ -55,6 +55,7 @@
     <string name="product_scan">Scan Product</string>
     <string name="request">Request(s)</string>
     <string name="history">History</string>
+    <string name="devices">Devices</string>
     <string name="scan_user">Scan User</string>
     <string name="customerss">Customers</string>
     <string name="order_management">Order management</string>

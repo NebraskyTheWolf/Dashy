@@ -137,6 +137,7 @@ dependencies {
     implementation("com.evrencoskun.library:tableview:0.8.8")
 
     implementation("com.github.commandiron:WheelPickerCompose:1.1.11")
+    implementation("com.github.trustdecision:trustdevice-android:1.0.7")
 
     // Lifecycle
     val roomVersion = "2.3.0"
