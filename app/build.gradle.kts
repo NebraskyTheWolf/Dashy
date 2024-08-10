@@ -139,6 +139,8 @@ dependencies {
     implementation("com.github.commandiron:WheelPickerCompose:1.1.11")
     implementation("com.github.trustdecision:trustdevice-android:1.0.7")
 
+    implementation("com.pusher:pusher-java-client:2.4.2")
+
     // Lifecycle
     val roomVersion = "2.3.0"
     val retrofitVersion = "2.3.0"

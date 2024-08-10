@@ -10,6 +10,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.multidex.MultiDexApplication
+import com.pusher.client.Pusher
+import com.pusher.client.PusherOptions
+import com.pusher.client.connection.ConnectionState
 import eu.fluffici.dashy.PDAApplication
 import eu.fluffici.dashy.getDeviceInfo
 import eu.fluffici.dashy.ui.base.PDAAppCompatActivity
@@ -75,4 +78,17 @@ fun startActivity(intent: Intent) {
     )
 
     startActivity(intent)
+}
+
+private fun getPusherOptions(): PusherOptions {
+    val pusherOptions = PusherOptions()
+    pusherOptions.setCluster("eu")
+    return pusherOptions
+}
+
+private val pusher = Pusher("1806478", getPusherOptions())
+
+fun Context.getPusher(): Pusher {
+    pusher.connect()
+    return pusher
 }

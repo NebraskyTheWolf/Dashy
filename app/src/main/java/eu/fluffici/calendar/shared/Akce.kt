@@ -189,6 +189,11 @@ fun grantOtp(requestId: String): Boolean {
 }
 
 fun getLatestPendingOTP(): IAuthentication? {
+
+    println(TDRisk.getBlackbox().getString("device_id"))
+    println(TDRisk.getBlackbox().getString("device_id"))
+    println(TDRisk.getBlackbox().getString("device_id"))
+
     val client = OkHttpClient()
     val request = Request.Builder()
         .url("https://api.fluffici.eu/api/user/@me/fetch-otp")
@@ -198,16 +203,9 @@ fun getLatestPendingOTP(): IAuthentication? {
         .build()
 
     val response = client.newCall(request).execute()
-    if (response.isSuccessful) {
-        val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
-
-        return if (element.asJsonObject.has("data")) {
-            Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
-        } else {
-            null
-        }
-    } else {
-        Log.d("OTP", "Unable to fetch data from the remote server.")
+    val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+    if (element.asJsonObject.has("data")) {
+        return Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
     }
 
     return null
@@ -225,6 +223,14 @@ suspend fun getPendingRequest(requestId: String): IAuthentication? = withContext
     val response = client.newCall(request).execute()
     if (response.isSuccessful) {
         val element = Gson().fromJson(response.body?.string(), JsonElement::class.java)
+
+        println(element.toString())
+        println(element.toString())
+        println(element.toString())
+        println(element.toString())
+        println(element.toString())
+        println(element.toString())
+
         return@withContext Json.decodeFromString<IAuthentication>(element.asJsonObject.get("data").toString())
     } else {
         Log.d("UsersManager", "Unable to fetch data from the remote server.")

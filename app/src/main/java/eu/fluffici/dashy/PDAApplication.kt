@@ -3,14 +3,19 @@ package eu.fluffici.dashy
 import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ContentValues
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.multidex.MultiDexApplication
 import cn.tongdun.mobrisk.TDRisk
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -32,6 +37,14 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import dagger.hilt.android.HiltAndroidApp
+import eu.fluffici.calendar.shared.getLatestPendingOTP
+import eu.fluffici.dashy.events.common.FirebaseSetup
+import eu.fluffici.dashy.events.module.CardClickEvent
+import eu.fluffici.dashy.ui.activities.experiment.IAuthentication
+import eu.fluffici.dashy.ui.activities.experiment.LoginConfirmation
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 @HiltAndroidApp
 open class PDAApplication : MultiDexApplication() {
@@ -42,7 +55,7 @@ open class PDAApplication : MultiDexApplication() {
     private val client = OkHttpClient()
 
     private val mBus = EventBus.getDefault()
-
+    private var executor: ScheduledExecutorService = Executors.newScheduledThreadPool(10)
     private var isOffline = false
 
     override fun onCreate() {
@@ -72,6 +85,25 @@ open class PDAApplication : MultiDexApplication() {
 
         if (Storage.isAuthentified(applicationContext)) {
             System.setProperty("X-Bearer-token", Storage.getAccessToken(applicationContext))
+
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(ContentValues.TAG, "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+
+                Storage.setMessagingToken(applicationContext, task.result)
+                this.mBus.post(FirebaseSetup(task.result))
+            })
+
+            if (Storage.hasAuthentication(applicationContext)) {
+                this.executor.scheduleWithFixedDelay({
+                    if (Storage.isAuthentified)
+                        this.mBus.post(CardClickEvent("fetch_latest_otp"))
+                }, 2, 30, TimeUnit.SECONDS)
+            } else {
+                Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
+            }
         } else {
             if (applicationContext.getDeviceInfo().isPDADevice) {
                 this.mBus.postSticky(DeviceAuthorization(applicationContext.getDeviceInfo().GetDeviceId()))
@@ -202,5 +234,42 @@ open class PDAApplication : MultiDexApplication() {
         }
 
         this.mBus.removeStickyEvent(event);
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    fun onFirebase(event: FirebaseSetup) {
+        val request = Request.Builder()
+            .url("https://api.fluffici.eu/api/user/@me/update-firebase")
+            .addHeader("Authorization", "Bearer ${Storage.getAccessToken(applicationContext)}")
+            .patch(event.toJSON())
+            .build()
+
+        val mClient = OkHttpClient()
+        val response = mClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            val data = Gson().fromJson(response.body?.string(), JsonObject::class.java);
+            if (!data.get("status").asBoolean) {
+
+                val i = Intent(applicationContext, ErrorScreen::class.java)
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                i.putExtra("title", "Firebase error")
+                i.putExtra("description", data.get("message").asString)
+                eu.fluffici.dashy.utils.startActivity(i)
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    fun onCardClick(event: CardClickEvent) {
+        when(event.viewId) {
+            "fetch_latest_otp" -> {
+                val latestPendingOTP: IAuthentication? = getLatestPendingOTP()
+                if (latestPendingOTP != null) {
+                    newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
+                        putExtra("requestId", latestPendingOTP.requestId)
+                    })
+                }
+            }
+        }
     }
 }

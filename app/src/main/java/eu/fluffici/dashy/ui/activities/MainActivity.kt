@@ -108,10 +108,6 @@ import okhttp3.Request
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 
 class MainActivity : PDAAppCompatActivity() {
@@ -119,8 +115,8 @@ class MainActivity : PDAAppCompatActivity() {
     private var mClient = OkHttpClient()
     private var mSafeGuard: Boolean = false
 
-    private var executor: ScheduledExecutorService = Executors.newScheduledThreadPool(10)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         this.mBus.register(this)
@@ -159,14 +155,6 @@ class MainActivity : PDAAppCompatActivity() {
                         ))
                     }
                 }
-            }
-
-            if (Storage.hasAuthentication(applicationContext)) {
-                this.executor.scheduleWithFixedDelay({
-                    this.mBus.post(CardClickEvent("fetch_latest_otp"))
-                }, 2, 10, TimeUnit.SECONDS)
-            } else {
-                Toast.makeText(applicationContext, "Please setup a pin-code before accepting your OTP request(s).", Toast.LENGTH_SHORT).show()
             }
 
             setContent {
@@ -274,19 +262,6 @@ class MainActivity : PDAAppCompatActivity() {
 
                 "devices" -> {
                     newIntent(Intent(applicationContext, TrustedDeviceSettings::class.java))
-                }
-
-                // Automated action
-                "fetch_latest_otp" -> {
-                    val latestPendingOTP: IAuthentication? = getLatestPendingOTP()
-                    if (latestPendingOTP != null) {
-                        newIntent(Intent(applicationContext, LoginConfirmation::class.java).apply {
-                            putExtra("requestId", latestPendingOTP.requestId)
-
-                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
-                                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                        })
-                    }
                 }
             }
         }
@@ -396,6 +371,10 @@ class MainActivity : PDAAppCompatActivity() {
         }
     }
 }
+
+// Assuming SubscriptionEventListener is a SAM interface or Kotlin allows SAM conversions
+
+
 
 @SuppressWarnings("All")
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
