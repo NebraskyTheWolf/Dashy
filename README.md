@@ -6,7 +6,7 @@
 
 - Name : PDA-Dashy
 - Type : Android Application
-- État : Continuous progression
+- Status : Cancelled (Public Archive)
 - Developer(s) : Vakea
 - COC : [Code of Conduct](https://github.com/NebraskyTheWolf/www.fluffici.eu/blob/master/docs/CODE_OF_CONDUCT.md)
 
